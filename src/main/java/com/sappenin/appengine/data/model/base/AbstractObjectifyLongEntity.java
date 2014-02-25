@@ -16,26 +16,21 @@
 package com.sappenin.appengine.data.model.base;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 import com.google.appengine.api.datastore.Key;
+import com.google.common.base.Preconditions;
 import com.googlecode.objectify.annotation.Id;
 import com.sappenin.appengine.data.model.GaeTypedEntity;
 
 /**
- * An abstract base-class for all entity objects that are stored into the GAE
- * Datastore with a Long identifier.
+ * An abstract base-class for all entity objects that are stored into the GAE Datastore with a Long identifier.
  * 
  * @author dfuelling
  * 
  */
 @ToString(callSuper = true)
-@NoArgsConstructor
-@RequiredArgsConstructor
 public abstract class AbstractObjectifyLongEntity<T extends AbstractEntity> extends AbstractObjectifyEntity<T>
 		implements GaeTypedEntity<T>
 {
@@ -47,15 +42,34 @@ public abstract class AbstractObjectifyLongEntity<T extends AbstractEntity> exte
 	public static final long SINGLE_VALUE_UNIQUE_IDENTIFIER = 1L;
 
 	@Id
-	@NonNull
 	@Getter
 	@Setter
 	private Long id;
 
 	/**
-	 * Override to assemble a Key with a long-type. Assembles the Key for this
-	 * entity. If an Entity has a Parent Key, that key will be included in the
-	 * returned Key hierarchy.
+	 * No args constructor.
+	 * 
+	 * @deprecated Exists only for Objectify. Utilize the Required-Args constructor instead.
+	 */
+	public AbstractObjectifyLongEntity()
+	{
+	}
+
+	/**
+	 * Required-args constructor.
+	 * 
+	 * @param id
+	 */
+	public AbstractObjectifyLongEntity(Long id)
+	{
+		Preconditions.checkNotNull(id);
+		Preconditions.checkArgument(id.longValue() > 0);
+		this.id = id;
+	}
+
+	/**
+	 * Override to assemble a Key with a long-type. Assembles the Key for this entity. If an Entity has a Parent Key,
+	 * that key will be included in the returned Key hierarchy.
 	 */
 	@Override
 	public Key getKey()

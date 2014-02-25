@@ -16,40 +16,57 @@
 package com.sappenin.appengine.data.model.base;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.appengine.api.datastore.Key;
+import com.google.common.base.Preconditions;
 import com.googlecode.objectify.annotation.Id;
 import com.sappenin.appengine.data.model.GaeTypedEntity;
 
 /**
- * An abstract base-class for all entity objects that are stored into the GAE
- * Datastore with a String identifier.
+ * An abstract base-class for all entity objects that are stored into the GAE Datastore with a String identifier.
  * 
  * @author dfuelling
  */
 @ToString
-@NoArgsConstructor
-@RequiredArgsConstructor
 public abstract class AbstractObjectifyStringEntity<T extends AbstractEntity> extends AbstractObjectifyEntity<T>
 		implements GaeTypedEntity<T>
 {
 	private static final long serialVersionUID = -2635333245859630019L;
 
 	@Id
-	@NonNull
 	@Getter
 	@Setter
 	private String id;
 
 	/**
-	 * Override to assemble a Key with a String-type. Assembles the Key for this
-	 * entity. If an Entity has a Parent Key, that key will be included in the
-	 * returned Key hierarchy.
+	 * No args constructor.
+	 * 
+	 * @deprecated Exists only for objectify. Utilize the Required Args constructor instead.
+	 */
+	public AbstractObjectifyStringEntity()
+	{
+	}
+
+	/**
+	 * Required-args constructor.
+	 * 
+	 * @param id
+	 */
+	public AbstractObjectifyStringEntity(String id)
+	{
+		Preconditions.checkArgument(!StringUtils.isBlank(id));
+		Preconditions.checkArgument(id.length() < 501,
+			"The String id of an App Engine Datastore entity in  may not exceed 500 characters!");
+		this.id = id;
+	}
+
+	/**
+	 * Override to assemble a Key with a String-type. Assembles the Key for this entity. If an Entity has a Parent Key,
+	 * that key will be included in the returned Key hierarchy.
 	 */
 	@Override
 	public Key getKey()
