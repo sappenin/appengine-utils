@@ -22,8 +22,7 @@ import com.googlecode.objectify.Key;
 import com.sappenin.appengine.data.model.GaeTypedEntity;
 
 /**
- * An abstract base-class for all entity objects that are stored into the GAE
- * Datastore via Objectify.
+ * An abstract base-class for all entity objects that are stored into the GAE Datastore via Objectify.
  * 
  * @author dfuelling
  * 
@@ -48,8 +47,7 @@ public abstract class AbstractObjectifyEntity<T extends AbstractEntity> extends 
 	}
 
 	/**
-	 * By default, Entities have a null parent Key. This is overridden by
-	 * implementations if a Parent key exists.
+	 * By default, Entities have a null parent Key. This is overridden by implementations if a Parent key exists.
 	 */
 	@Override
 	public Key<?> getParentKey()

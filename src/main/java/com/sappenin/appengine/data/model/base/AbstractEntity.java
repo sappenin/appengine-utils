@@ -57,13 +57,11 @@ public abstract class AbstractEntity implements TrackableEntity, GaeEntity, Seri
 	}
 
 	/**
-	 * A helper function to return the PrimaryKey Identifier of this object.
-	 * This does not return a Typed or Raw Key, but instead returns a Long or a
-	 * String that represents the Primary Key field for entities that implement
-	 * this interface. <br/>
+	 * A helper function to return the PrimaryKey Identifier of this object. This does not return a Typed or Raw Key,
+	 * but instead returns a Long or a String that represents the Primary Key field for entities that implement this
+	 * interface. <br/>
 	 * <br/>
-	 * NOTE: Implementations should override this function to return the proper
-	 * Primary Key type.
+	 * NOTE: Implementations should override this function to return the proper Primary Key type.
 	 * 
 	 * @return The PrimaryKey Id as a Long or a String.
 	 */

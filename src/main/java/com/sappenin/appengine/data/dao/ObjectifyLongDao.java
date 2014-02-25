@@ -19,25 +19,20 @@ import com.google.appengine.api.datastore.Entity;
 import com.sappenin.appengine.data.model.base.AbstractEntity;
 
 /**
- * A DAO interface for finding entities identifiers of type {@link Long} by
- * their Objectify Key.
+ * A DAO interface for finding entities identifiers of type {@link Long} by their Objectify Key.
  * 
  * @author dfuelling
  */
 public interface ObjectifyLongDao<T extends AbstractEntity> extends ObjectifyDao<T>
 {
 	/**
-	 * Creates a new entity of type <T> in the datastore. This function enforces
-	 * that {@link Entity#getId} is null, making this function non-idempotent.
-	 * If the Key/id of the entity is not null, then #save should be used
-	 * instead. <br/>
+	 * Creates a new entity of type <T> in the datastore. This function enforces that {@link Entity#getId} is null,
+	 * making this function non-idempotent. If the Key/id of the entity is not null, then #save should be used instead. <br/>
 	 * <br/>
-	 * This function is used to help developers clarify that they're calling the
-	 * proper persistence method, since by nature the appengine datastore does
-	 * not have any native overwrite checking. For example, if an entity has an
-	 * id already, it would be a mistake to call {@link #create(AbstractEntity)}
-	 * since the logic around creating and saving is potentially different based
-	 * upon the entity's business rules.
+	 * This function is used to help developers clarify that they're calling the proper persistence method, since by
+	 * nature the appengine datastore does not have any native overwrite checking. For example, if an entity has an id
+	 * already, it would be a mistake to call {@link #create(AbstractEntity)} since the logic around creating and saving
+	 * is potentially different based upon the entity's business rules.
 	 * 
 	 * @param entity
 	 */

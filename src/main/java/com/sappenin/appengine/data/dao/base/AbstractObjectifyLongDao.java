@@ -29,11 +29,6 @@ import com.sappenin.appengine.data.model.base.AbstractObjectifyLongEntity;
 public abstract class AbstractObjectifyLongDao<T extends AbstractObjectifyLongEntity<T>> extends
 		AbstractObjectifyDao<T> implements ObjectifyLongDao<T>
 {
-
-	// /////////////////////////////////////////////
-	// SAVE METHODS
-	// /////////////////////////////////////////////
-
 	@Override
 	public void create(final T entity)
 	{
