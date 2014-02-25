@@ -16,6 +16,7 @@
 package com.sappenin.appengine.data.model.base;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -38,6 +39,7 @@ public abstract class AbstractObjectifyStringEntity<T extends AbstractEntity> ex
 	private static final long serialVersionUID = -2635333245859630019L;
 
 	@Id
+	@NonNull
 	@Getter
 	@Setter
 	private String id;
