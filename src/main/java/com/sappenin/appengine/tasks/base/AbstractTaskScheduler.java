@@ -29,8 +29,8 @@ import com.sappenin.appengine.json.JsonUtils;
 import com.sappenin.appengine.tasks.TaskScheduler;
 
 /**
- * Abstract class that can be used by sub-classes for scheduling taskqueue tasks
- * in Follie.
+ * Abstract implementation of {@link TaskScheduler} for assisting with the scheduling of tasks with the taskqueue
+ * service in App Engine.
  * 
  * @param <T>
  */
@@ -65,11 +65,8 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 			// Enqueue this task
 			TaskOptions taskOptions = TaskOptions.Builder.withDefaults();
 
-			// Convert the Payload into JSON. We use JSON instead of a
-			// DeferredTask
-			// because JSON is less brittle when the {@link FollieCallback}
-			// class
-			// structure changes than a Serialized class.
+			// Convert the Payload into JSON. We use JSON instead of a DeferredTask because JSON is less brittle when
+			// the payload class structure changes than a Serialized class.
 			final String jsonPayload = this.getJsonUtils().toJSON(payload);
 			taskOptions = taskOptions.payload(jsonPayload);
 			taskOptions = taskOptions.url(getProcessingQueueUrlPath());
@@ -103,8 +100,8 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 	protected abstract String getProcessingQueueName();
 
 	/**
-	 * @return the url path that this application will process taskqueues on.
-	 *         For example, "/tasks/callbacks/processCallback".
+	 * @return the url path that this application will process taskqueues on. For example,
+	 *         "/tasks/callbacks/processCallback".
 	 */
 	protected abstract String getProcessingQueueUrlPath();
 }
