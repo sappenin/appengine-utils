@@ -16,15 +16,23 @@
 package com.sappenin.appengine.data.dao;
 
 import com.sappenin.appengine.data.model.base.AbstractEntity;
+import com.sappenin.exceptions.data.DuplicateEntityException;
 
 /**
- * A DAO interface for finding entities identifiers of type {@link String} by
- * their Objectify Key.
+ * A DAO interface for finding entities identifiers of type {@link String} by their Objectify Key.
  * 
  * @author dfuelling
- * 
  */
 public interface ObjectifyStringDao<T extends AbstractEntity> extends ObjectifyDao<T>
 {
-
+	/**
+	 * Create a new entity in the Datastore, but only if one doesn't already exist. For String-identifier-based
+	 * entities, this function will first check the Datastore to see if an entity exists. If it does, then a
+	 * {@link DuplicateEntityException} will be thrown. If no entity with the same Key exists in the datastore, then
+	 * this operation will succeed in the same fashion as {@link #save(AbstractEntity)}.
+	 * 
+	 * @param entity An entity to persist into the Datastore.
+	 * @throws {@link DuplicateEntityException} if the entity with this id already exists in the Datastore.
+	 */
+	public void create(final T entity);
 }
