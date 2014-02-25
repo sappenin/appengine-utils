@@ -1,17 +1,17 @@
 /**
  * Copyright (C) 2014 Sappenin Inc. (developers@sappenin.com)
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.sappenin.appengine.data.dao.base;
 
@@ -22,6 +22,7 @@ import org.joda.time.DateTimeZone;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
@@ -45,8 +46,7 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	// ////////////////////////////////////////
 
 	/**
-	 * Doesn't allow an entity with a non-null Key<T> to be saved, and updates
-	 * the updatedDateTime to be "now".
+	 * Doesn't allow an entity with a non-null Key<T> to be saved, and updates the updatedDateTime to be "now".
 	 * 
 	 * @param entity
 	 */
@@ -67,7 +67,15 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	// ////////////////////////////
 
 	@Override
-	public T findByTypedKey(final Key<T> typedKey) throws NotFoundException
+	public Optional<T> findByTypedKey(final Key<T> typedKey)
+	{
+		Preconditions.checkNotNull(typedKey);
+		// #now will return null if the entity isn't found, which Optional can handle.
+		return Optional.<T> fromNullable(ObjectifyService.ofy().load().key(typedKey).now());
+	}
+
+	@Override
+	public T findByTypedKeySafe(final Key<T> typedKey) throws NotFoundException
 	{
 		Preconditions.checkNotNull(typedKey);
 		// Prefer #safe over #now because it will throw a NotFoundException if
@@ -75,11 +83,13 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 		return ObjectifyService.ofy().load().key(typedKey).safe();
 	}
 
-	protected ResultWithCursor<List<T>> loadFromDatastoreWithCursor(Query<T> finalizedQuery, final Cursor offset,
-			int limit)
+	@Override
+	public ResultWithCursor<List<T>> loadFromDatastoreWithCursor(Query<T> finalizedQuery, final Cursor offset, int limit)
 	{
 		Preconditions.checkNotNull(finalizedQuery);
-		// Massage the number of allowed items to return...
+		// TODO Allow external callers to udpate the number of allowed items to
+		// return...
+		// See
 		if ((limit <= 0) || (limit > 50))
 		{
 			limit = 10;

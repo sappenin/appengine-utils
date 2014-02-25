@@ -15,8 +15,13 @@
  */
 package com.sappenin.appengine.data.dao.base;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.googlecode.objectify.ObjectifyService;
+import com.googlecode.objectify.VoidWork;
 import com.sappenin.appengine.data.dao.ObjectifyStringDao;
 import com.sappenin.appengine.data.model.base.AbstractObjectifyStringEntity;
+import com.sappenin.exceptions.data.DuplicateEntityException;
 
 /**
  * An abstract implementation of {@link ObjectifyStringDao}.
@@ -27,8 +32,28 @@ public abstract class AbstractObjectifyStringDao<T extends AbstractObjectifyStri
 		AbstractObjectifyDao<T> implements ObjectifyStringDao<T>
 {
 
-	// ////////////////////////////////////////
-	// Overrides
-	// ////////////////////////////////////////
+	@Override
+	public void create(final T entity)
+	{
+		Preconditions.checkNotNull(entity);
 
+		// First check to see if the Entity exists. If it does, throw a
+		// DuplicateEntity exception. Otherwise, create a new User in the
+		// Datastore.
+		ObjectifyService.ofy().transact(new VoidWork()
+		{
+			@Override
+			public void vrun()
+			{
+				Optional<T> optExisting = findByTypedKey(entity.getTypedKey());
+				if (optExisting.isPresent())
+				{
+					throw new DuplicateEntityException("Unable to Create a new " + entity.getClass().getSimpleName()
+						+ " with id \"" + entity.getId() + "\" because it already exists!");
+				}
+
+				save(entity);
+			}
+		});
+	}
 }
