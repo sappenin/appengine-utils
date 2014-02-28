@@ -15,7 +15,7 @@
  */
 package com.sappenin.appengine.data.model;
 
-import lombok.Value;
+import lombok.Data;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -24,8 +24,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * 
  * @param <T>
  */
-@Value
-@lombok.experimental.Wither
+@Data
 public class Id<T>
 {
 	private final String id;

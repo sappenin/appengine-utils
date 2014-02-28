@@ -25,8 +25,8 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Preconditions;
-import com.sappenin.appengine.json.JsonUtils;
 import com.sappenin.appengine.tasks.TaskScheduler;
+import com.sappenin.utils.json.JsonUtils;
 
 /**
  * Abstract implementation of {@link TaskScheduler} for assisting with the scheduling of tasks with the taskqueue

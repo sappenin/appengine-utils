@@ -15,8 +15,8 @@
  */
 package com.sappenin.appengine.data.dao;
 
-import com.sappenin.annotations.Idempotent;
 import com.sappenin.appengine.data.model.base.AbstractEntity;
+import com.sappenin.utils.annotations.Idempotent;
 
 /**
  * An interface that defines common DAO functionality.
