@@ -27,13 +27,21 @@ import com.sappenin.utils.annotations.Idempotent;
 public interface Dao<T extends AbstractEntity>
 {
 	/**
-	 * Saves an entity of type <T> to the datastore. By definition, this
-	 * operation is idempotent, meaning a repetition of this operation will
-	 * always produce the same result if completed successfully.
+	 * Saves an entity of type <T> to the datastore. By definition, this operation is idempotent, meaning a repetition
+	 * of this operation will always produce the same result if completed successfully.
 	 * 
-	 * @param entity The entity object to save in the datastore.
+	 * @param entity The entity to save in the datastore.
 	 */
 	@Idempotent
 	public void save(final T entity);
+
+	/**
+	 * Saves an entity of type <T> to the datastore. By definition, this operation is idempotent if
+	 * {@code touchUpdateDateTime} is set to {@code false}.
+	 * 
+	 * @param entity The entity to save in the datastore.
+	 * @param touchUpdateDateTime A boolean to indicate if the updateDateTime should be incremented to "now".
+	 */
+	public void save(T entity, boolean touchUpdateDateTime);
 
 }

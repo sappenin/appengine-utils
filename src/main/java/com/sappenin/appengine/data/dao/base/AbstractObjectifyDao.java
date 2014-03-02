@@ -32,6 +32,7 @@ import com.googlecode.objectify.cmd.Query;
 import com.sappenin.appengine.data.dao.ObjectifyDao;
 import com.sappenin.appengine.data.model.ResultWithCursor;
 import com.sappenin.appengine.data.model.base.AbstractEntity;
+import com.sappenin.utils.annotations.Idempotent;
 
 /**
  * An abstract implementation of {@link ObjectifyDao}.
@@ -51,13 +52,28 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	 * @param entity
 	 */
 	@Override
+	@Idempotent
 	public void save(final T entity)
+	{
+		this.save(entity, false);
+	}
+
+	/**
+	 * Doesn't allow an entity with a non-null Key<T> to be saved, and updates the updatedDateTime to be "now".
+	 * 
+	 * @param entity
+	 */
+	@Override
+	public void save(final T entity, boolean touchUpdateDateTime)
 	{
 		Preconditions.checkNotNull(entity);
 		Preconditions.checkArgument(entity.getKey() != null,
 			"Cannot #save an Entity that has no Key.  Call the Dao's #createNew function instead.");
 
-		entity.setUpdateDateTime(DateTime.now(DateTimeZone.UTC));
+		if (touchUpdateDateTime)
+		{
+			entity.setUpdateDateTime(DateTime.now(DateTimeZone.UTC));
+		}
 
 		ObjectifyService.ofy().save().entity(entity).now();
 	}
