@@ -37,23 +37,35 @@ public interface ObjectifyDao<T extends AbstractEntity> extends Dao<T>
 	 *
 	 * @return The optionally found entity from the datastore, or {@code null} if the entity doesn't exist.
 	 */
-	public Optional<T> findByTypedKey(final Key<T> typedKey);
+	Optional<T> findByTypedKey(final Key<T> typedKey);
 
 	/**
 	 * Finds an entity from the database using a typed Objectify Key<T>
 	 *
 	 * @throws NotFoundException Thrown if an entity identified by {@code typedKey} is not found in the Datastore.
 	 */
-	public T findByTypedKeySafe(final Key<T> typedKey) throws NotFoundException;
+	T findByTypedKeySafe(final Key<T> typedKey) throws NotFoundException;
 
 	/**
-	 * Helper method to load data from the Datastore using paging.
+	 * Helper method to load entities from the Datastore using paging.
 	 *
-	 * @param finalizedQuery A {@link Query} that has been finalized.
-	 * @param offset         A {@link Cursor} for paging.
-	 * @param limit          A limit on the number of query results to return.
+	 * @param query  A {@link Query} that has not been finalized.
+	 * @param offset A {@link Cursor} for paging.
+	 * @param limit  A limit on the number of query results to return.
 	 *
 	 * @return
 	 */
-	public ResultWithCursor<List<T>> loadFromDatastoreWithCursor(Query<T> finalizedQuery, Cursor offset, int limit);
+	ResultWithCursor<List<T>> loadFromDatastoreWithCursor(final Query<T> query, final Cursor offset, int limit);
+
+	/**
+	 * Helper method to load entity Keys from the Datastore using paging.
+	 *
+	 * @param query  A {@link Query} that has not been finalized.
+	 * @param offset A {@link Cursor} for paging.
+	 * @param limit  A limit on the number of query results to return.
+	 *
+	 * @return
+	 */
+	ResultWithCursor<List<Key<T>>> loadKeysOnlyFromDatastoreWithCursor(final Query<T> query, final Cursor offset,
+			final int limit);
 }

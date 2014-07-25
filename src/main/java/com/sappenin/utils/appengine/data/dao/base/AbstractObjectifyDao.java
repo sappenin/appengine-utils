@@ -17,6 +17,7 @@ package com.sappenin.utils.appengine.data.dao.base;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -52,7 +53,6 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	@Idempotent
 	public void save(final T entity)
 	{
-
 		this.save(entity, true);
 	}
 
@@ -62,7 +62,6 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	@Override
 	public void save(final T entity, boolean touchUpdateDateTime)
 	{
-
 		Preconditions.checkNotNull(entity);
 		Preconditions.checkArgument(entity.getKey() != null,
 				"Cannot #save an Entity that has no Key.  Call the Dao's #createNew function instead.");
@@ -82,7 +81,6 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	@Override
 	public Optional<T> findByTypedKey(final Key<T> typedKey)
 	{
-
 		Preconditions.checkNotNull(typedKey);
 		// #now will return null if the entity isn't found, which Optional can
 		// handle.
@@ -92,7 +90,6 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	@Override
 	public T findByTypedKeySafe(final Key<T> typedKey) throws NotFoundException
 	{
-
 		Preconditions.checkNotNull(typedKey);
 		// Prefer #safe over #now because it will throw a NotFoundException if
 		// the entity is not found.
@@ -100,21 +97,66 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	}
 
 	@Override
-	public ResultWithCursor<List<T>> loadFromDatastoreWithCursor(Query<T> finalizedQuery, final Cursor offset,
-			int limit)
+	public ResultWithCursor<List<T>> loadFromDatastoreWithCursor(final Query<T> query, final Cursor offset, int limit)
 	{
+		final int adjustedLimit = adjustLimit(limit);
+		final Query<T> actualQuery = this.massageQuery(query, offset, adjustedLimit);
+		final QueryResultIterator<T> iterator = actualQuery.iterator();
+		return this.assembleResultWithCursor(iterator, adjustedLimit);
+	}
 
-		Preconditions.checkNotNull(finalizedQuery);
-		// TODO Allow external callers to udpate the number of allowed items to
-		// return...
-		// See
+	@Override
+	public ResultWithCursor<List<Key<T>>> loadKeysOnlyFromDatastoreWithCursor(final Query<T> query,
+			final Cursor offset,
+			final int limit)
+	{
+		final int adjustedLimit = adjustLimit(limit);
+		final Query<T> actualQuery = this.massageQuery(query, offset, adjustedLimit);
+		final QueryResultIterator<Key<T>> iterator = actualQuery.keys().iterator();
+		return this.assembleResultWithCursor(iterator, adjustedLimit);
+	}
+
+	//////////////////
+	// Private Helpers
+	//////////////////
+
+	/**
+	 * Adjusts a limit value to be within the parameters of this class.<br/><br/>TODO: See appengine-utils #1.
+	 *
+	 * @param limit
+	 *
+	 * @return
+	 * @see "https://github.com/sappenin/appengine-utils/issues/1"
+	 */
+	@VisibleForTesting
+	int adjustLimit(int limit)
+	{
 		if ((limit <= 0) || (limit > 50))
 		{
 			limit = 10;
 		}
+		return limit;
+	}
 
-		final List<T> resultCollection = Lists.newLinkedList();
-		final ResultWithCursor<List<T>> resultWithCursor = new ResultWithCursor<List<T>>(resultCollection);
+	/**
+	 * Helper method to massages a {@link Query} object to have the proper limit and offset values.
+	 *
+	 * @param finalizedQuery
+	 * @param offset
+	 * @param limit
+	 *
+	 * @return
+	 */
+	@VisibleForTesting
+	Query<T> massageQuery(Query<T> finalizedQuery, final Cursor offset, int limit)
+	{
+
+		Preconditions.checkNotNull(finalizedQuery);
+		// TODO Allow external callers to udpate the number of allowed items to return...
+		if ((limit <= 0) || (limit > 50))
+		{
+			limit = 10;
+		}
 
 		// See
 		// http://stackoverflow.com/questions/14088808/query-cursor-with-app-engine-java-jdo
@@ -124,11 +166,33 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 		// (the cursor updates on every iterator bump)
 
 		// Load limit + 1 to get a Cursor to more results, if any
-		finalizedQuery = finalizedQuery.limit(limit + 1);
-		finalizedQuery = finalizedQuery.startAt(offset);
+		Query<T> returnableUpdatedQuery = finalizedQuery.limit(limit + 1);
+		returnableUpdatedQuery = returnableUpdatedQuery.startAt(offset);
 
-		final QueryResultIterator<T> entitiesIterator = finalizedQuery.iterable().iterator();
+		return returnableUpdatedQuery;
+
+	}
+
+	/**
+	 * Assembles a {@link ResultWithCursor} that holds a List of objects of type <Z>.
+	 *
+	 * @param entitiesIterator
+	 * @param limit
+	 * @param <Z>              The type of entity that should be returned in the {@link ResultWithCursor}.  This allows
+	 *                         both entities and entity keys to be returned, thus supporting keys-only queries.
+	 *
+	 * @return
+	 */
+	@VisibleForTesting
+	<Z> ResultWithCursor<List<Z>> assembleResultWithCursor(
+			final com.google.appengine.api.datastore.QueryResultIterator<Z> entitiesIterator, final int limit)
+	{
+		// The thing to return...
 		Cursor lastRetrievedResultCursor = null;
+
+		final List<Z> resultCollection = Lists.newLinkedList();
+		final ResultWithCursor<List<Z>> resultWithCursor = new ResultWithCursor<>(resultCollection);
+
 		// Set to true to populate the cursor, indicating there are more
 		// results. This can be gleaned from teh value of
 		// numProcessedInboxEntries, but this variable is used to be more overt.
@@ -136,7 +200,7 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 		int numProcessedEntities = 0;
 		while (entitiesIterator.hasNext())
 		{
-			final T entity = entitiesIterator.next();
+			final Z entity = entitiesIterator.next();
 
 			// We load up to 11 items, but only want to return a maximum of
 			// limit (generally 10).
@@ -174,4 +238,5 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 
 		return resultWithCursor;
 	}
+
 }
