@@ -20,11 +20,17 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
+import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.io.CharStreams;
 import com.sappenin.utils.appengine.tasks.TaskScheduler;
 import com.sappenin.utils.json.JsonUtils;
 import lombok.Getter;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
 /**
@@ -45,7 +51,6 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 	 */
 	public AbstractTaskScheduler(final JsonUtils jsonUtils)
 	{
-
 		this.jsonUtils = jsonUtils;
 	}
 
@@ -103,4 +108,36 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 	 * "/tasks/callbacks/processCallback".
 	 */
 	protected abstract String getProcessingQueueUrlPath();
+
+	/**
+	 * Helper method to grab a Json Payload from the InputStream of an {@link HttpServletRequest}.
+	 *
+	 * @param httpServletRequest
+	 *
+	 * @return
+	 */
+	protected String getJsonPayloadFromRequest(final HttpServletRequest httpServletRequest) throws IOException
+	{
+		Preconditions.checkNotNull(httpServletRequest);
+		return this.getJsonPayloadFromRequest(httpServletRequest.getInputStream());
+	}
+
+	/**
+	 * Helper method to grab a Json Payload from an InputStream.  This is generally used in concert with an {@link
+	 * HttpServletRequest}, but doesn't strictly need to be.
+	 *
+	 * @param inputStream
+	 *
+	 * @return
+	 */
+	protected String getJsonPayloadFromRequest(final InputStream inputStream) throws IOException
+	{
+		Preconditions.checkNotNull(inputStream);
+		try (final InputStream stream = inputStream)
+		{
+			String jsonPayload = CharStreams.toString(new InputStreamReader(stream, Charsets.UTF_8));
+			getLogger().exiting(this.getClass().getName(), "getJsonPayloadFromRequest", jsonPayload);
+			return jsonPayload;
+		}
+	}
 }
