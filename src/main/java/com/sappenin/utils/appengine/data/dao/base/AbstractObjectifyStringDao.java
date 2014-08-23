@@ -36,6 +36,7 @@ public abstract class AbstractObjectifyStringDao<T extends AbstractObjectifyStri
 	public void create(final T entity)
 	{
 		Preconditions.checkNotNull(entity);
+		Preconditions.checkArgument(entity.getKey() != null, "Cannot #createNew an Entity that has no Key.");
 
 		// First check to see if the Entity exists. If it does, throw a
 		// DuplicateEntity exception. Otherwise, create a new User in the

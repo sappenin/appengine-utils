@@ -15,268 +15,275 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<parent>
-		<groupId>org.sonatype.oss</groupId>
-		<artifactId>oss-parent</artifactId>
-		<version>7</version>
-	</parent>
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
 
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.sappenin.utils.appengine</groupId>
-	<artifactId>appengine-utils</artifactId>
-	<version>1.0.3-SNAPSHOT</version>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.sappenin.utils.appengine</groupId>
+    <artifactId>appengine-utils</artifactId>
+    <version>1.0.3-SNAPSHOT</version>
 
-	<name>App Engine Utils</name>
-	<description>Utilities classes for use with Google App Engine</description>
+    <name>App Engine Utils</name>
+    <description>Utilities classes for use with Google App Engine</description>
 
-	<url>https://github.com/sappenin/appengine-utils</url>
-	<packaging>jar</packaging>
+    <url>https://github.com/sappenin/appengine-utils</url>
+    <packaging>jar</packaging>
 
-	<inceptionYear>2014</inceptionYear>
-	<licenses>
-		<license>
-			<name>The Apache Software License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-	<organization>
-		<name>Sappenin Inc.</name>
-		<url>http://www.sappenin.com</url>
-	</organization>
+    <inceptionYear>2014</inceptionYear>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <organization>
+        <name>Sappenin Inc.</name>
+        <url>http://www.sappenin.com</url>
+    </organization>
 
-	<developers>
-		<developer>
-			<name>David Fuelling</name>
-		</developer>
-	</developers>
+    <developers>
+        <developer>
+            <name>David Fuelling</name>
+        </developer>
+    </developers>
 
-	<scm>
-		<connection>scm:git:git://github.com/sappenin/appengine-utils.git</connection>
-		<developerConnection>scm:git:git@github.com:sappenin/appengine-utils.git</developerConnection>
-		<url>http://github.com/sappenin/appengine-utils</url>
-	</scm>
+    <scm>
+        <connection>scm:git:git://github.com/sappenin/appengine-utils.git</connection>
+        <developerConnection>scm:git:git@github.com:sappenin/appengine-utils.git</developerConnection>
+        <url>http://github.com/sappenin/appengine-utils</url>
+    </scm>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<sappenin-java-utils.version>1.0.1</sappenin-java-utils.version>
-		<appengine.target.version>1.9.6</appengine.target.version>
-		<objectify.version>5.0.3</objectify.version>
+        <sappenin-java-utils.version>1.0.1</sappenin-java-utils.version>
+        <appengine.target.version>1.9.6</appengine.target.version>
+        <objectify.version>5.0.3</objectify.version>
 
-		<jackson.fasterxml.version>2.3.3</jackson.fasterxml.version>
-		<joda.time.version>2.3</joda.time.version>
-		<guava.version>17.0</guava.version>
+        <jackson.fasterxml.version>2.3.3</jackson.fasterxml.version>
+        <joda.time.version>2.3</joda.time.version>
+        <guava.version>17.0</guava.version>
 
-		<maven.compiler.plugin.version>3.0</maven.compiler.plugin.version>
-	</properties>
+        <maven.compiler.plugin.version>3.0</maven.compiler.plugin.version>
+    </properties>
 
-	<distributionManagement>
-		<snapshotRepository>
-			<id>sonatype-nexus-snapshots</id>
-			<name>Sonatype Nexus snapshot repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>sonatype-nexus-staging</id>
-			<name>Sonatype Nexus release repository</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus snapshot repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Sonatype Nexus release repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
 
-	</distributionManagement>
+    </distributionManagement>
 
-	<dependencies>
+    <dependencies>
 
-		<!-- ############## -->
-		<!-- Provided Scope -->
-		<!-- ############## -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.14.4</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<scope>provided</scope>
-			<version>2.5</version>
-		</dependency>
+        <!-- ############## -->
+        <!-- Provided Scope -->
+        <!-- ############## -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.14.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <scope>provided</scope>
+            <version>2.5</version>
+        </dependency>
 
-		<!-- ############## -->
-		<!-- Test Scope -->
-		<!-- ############## -->
+        <!-- ############## -->
+        <!-- Test Scope -->
+        <!-- ############## -->
 
-		<dependency>
-			<groupId>com.google.appengine</groupId>
-			<artifactId>appengine-testing</artifactId>
-			<version>${appengine.target.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.appengine</groupId>
-			<artifactId>appengine-api-stubs</artifactId>
-			<version>${appengine.target.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.appengine</groupId>
-			<artifactId>appengine-tools-sdk</artifactId>
-			<version>${appengine.target.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.11</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>appengine-testing</artifactId>
+            <version>${appengine.target.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>appengine-api-stubs</artifactId>
+            <version>${appengine.target.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>appengine-tools-sdk</artifactId>
+            <version>${appengine.target.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
 
-		<!-- ############## -->
-		<!-- Compile Scope -->
-		<!-- ############## -->
+        <!-- ############## -->
+        <!-- Compile Scope -->
+        <!-- ############## -->
 
-		<dependency>
-			<groupId>com.sappenin.utils</groupId>
-			<artifactId>java-utils</artifactId>
-			<version>${sappenin-java-utils.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>com.sappenin.utils</groupId>
+            <artifactId>java-utils</artifactId>
+            <version>${sappenin-java-utils.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>com.google.appengine</groupId>
-			<artifactId>appengine-api-1.0-sdk</artifactId>
-			<version>${appengine.target.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.appengine</groupId>
-			<artifactId>appengine-api-labs</artifactId>
-			<version>${appengine.target.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.googlecode.objectify</groupId>
-			<artifactId>objectify</artifactId>
-			<version>${objectify.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>joda-time</groupId>
-			<artifactId>joda-time</artifactId>
-			<version>${joda.time.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>appengine-api-1.0-sdk</artifactId>
+            <version>${appengine.target.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>appengine-api-labs</artifactId>
+            <version>${appengine.target.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.objectify</groupId>
+            <artifactId>objectify</artifactId>
+            <version>${objectify.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>${joda.time.version}</version>
+        </dependency>
 
-		<!-- ========= -->
-		<!-- Jackson -->
-		<!-- ========= -->
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>${jackson.fasterxml.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>${jackson.fasterxml.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.datatype</groupId>
-			<artifactId>jackson-datatype-joda</artifactId>
-			<version>${jackson.fasterxml.version}</version>
-		</dependency>
+        <!-- ========= -->
+        <!-- Jackson -->
+        <!-- ========= -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.fasterxml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.fasterxml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-joda</artifactId>
+            <version>${jackson.fasterxml.version}</version>
+        </dependency>
 
-		<!-- ========= -->
-		<!-- Apache -->
-		<!-- ========= -->
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.1</version>
-		</dependency>
+        <!-- ========= -->
+        <!-- Apache -->
+        <!-- ========= -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.1</version>
+        </dependency>
 
-	</dependencies>
+    </dependencies>
 
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-				<version>${maven.compiler.plugin.version}</version>
-			</plugin>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+                <version>${maven.compiler.plugin.version}</version>
+            </plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>2.1.2</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-			<plugin>
-				<groupId>com.mycila</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<version>2.5</version>
-				<configuration>
-					<header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
-					<properties>
-						<owner>Sappenin Inc.</owner>
-						<year>${project.inceptionYear}</year>
-						<email>developers@sappenin.com</email>
-					</properties>
-					<excludes>
-						<exclude>**/README</exclude>
-						<exclude>src/test/resources/**</exclude>
-						<exclude>src/main/resources/**</exclude>
-					</excludes>
-					<executions>
-						<execution>
-							<goals>
-								<goal>check</goal>
-							</goals>
-						</execution>
-					</executions>
-				</configuration>
-			</plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
+                    <properties>
+                        <owner>Sappenin Inc.</owner>
+                        <year>${project.inceptionYear}</year>
+                        <email>developers@sappenin.com</email>
+                    </properties>
+                    <excludes>
+                        <exclude>**/README</exclude>
+                        <exclude>src/test/resources/**</exclude>
+                        <exclude>src/main/resources/**</exclude>
+                    </excludes>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </configuration>
+            </plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.4</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>test-jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<systemProperties>
-						<property>
-							<name>java.util.logging.config.file</name>
-							<value>src/test/resources/logging.properties</value>
-						</property>
-					</systemProperties>
-				</configuration>
-				<version>2.15</version>
-			</plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemProperties>
+                        <property>
+                            <name>java.util.logging.config.file</name>
+                            <value>src/test/resources/logging.properties</value>
+                        </property>
+                    </systemProperties>
+                </configuration>
+                <version>2.15</version>
+            </plugin>
 
-			<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
@@ -287,68 +294,68 @@
                     <goals>deploy</goals>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
-			</plugin>
+            </plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-		</plugins>
-	</build>
+        </plugins>
+    </build>
 
-	<profiles>
-		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.5</version>
-						<configuration>
-							<passphrase>${gpg.passphrase}</passphrase>
-						</configuration>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <configuration>
+                            <passphrase>${gpg.passphrase}</passphrase>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
-				<configuration>
-				</configuration>
-			</plugin>
-		</plugins>
-	</reporting>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 
 </project>

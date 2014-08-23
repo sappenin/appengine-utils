@@ -35,7 +35,7 @@ public abstract class AbstractObjectifyLongDao<T extends AbstractObjectifyLongEn
 		// Assert that the Id is null. If it is not null, then #save should be
 		// used instead.
 		Preconditions.checkNotNull(entity);
-		Preconditions.checkArgument(entity.getId() == null,
+		Preconditions.checkArgument(entity.getKey() == null,
 				"Cannot #createNew an Entity that has an existing Key.  Call the Dao's #save function instead.");
 
 		// Set the id here so that the call to #save below is idempotent
