@@ -12,7 +12,7 @@ import org.junit.Test;
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyStringDaoTestor<T extends AbstractObjectifyStringEntity<T> & GaeTypedEntity<T>>
+public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjectifyStringEntity<T> & GaeTypedEntity<T>>
 		extends AbstractDaoTesterGAE<T>
 {
 	/**

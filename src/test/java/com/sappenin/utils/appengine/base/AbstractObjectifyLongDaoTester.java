@@ -12,7 +12,7 @@ import org.junit.Test;
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyLongDaoTestor<T extends AbstractObjectifyLongEntity<T> & GaeTypedEntity<T>>
+public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectifyLongEntity<T> & GaeTypedEntity<T>>
 		extends AbstractDaoTesterGAE<T>
 {
 	/**
@@ -26,7 +26,7 @@ public abstract class AbstractObjectifyLongDaoTestor<T extends AbstractObjectify
 	/**
 	 * Tests what happens when a "dao#save"  is called on an entity with no id.
 	 */
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	@Override
 	public void TestNonIdempotentSave() throws Exception
 	{
@@ -37,7 +37,7 @@ public abstract class AbstractObjectifyLongDaoTestor<T extends AbstractObjectify
 	/**
 	 * Tests what happens when a "dao#save"  is called on an entity with an id.
 	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	@Override
 	public void TestIdempotentSave() throws Exception
 	{
@@ -59,7 +59,7 @@ public abstract class AbstractObjectifyLongDaoTestor<T extends AbstractObjectify
 	/**
 	 * Tests what happens when a "dao#create"  is called on an entity with an id.
 	 */
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	@Override
 	public void TestIdempotentCreate() throws Exception
 	{
