@@ -15,16 +15,16 @@
  */
 package com.sappenin.utils.appengine.tasks.aggregate;
 
-import com.google.appengine.api.NamespaceManager;
-import com.google.appengine.api.taskqueue.Queue;
-import com.google.appengine.api.taskqueue.QueueFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.appengine.api.taskqueue.TaskAlreadyExistsException;
 import com.google.appengine.api.taskqueue.TaskOptions;
-import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Preconditions;
 import com.sappenin.utils.appengine.tasks.TaskScheduler;
+import com.sappenin.utils.appengine.tasks.aggregate.AggregateTaskSchedulingHelper.Impl;
 import com.sappenin.utils.appengine.tasks.base.AbstractTaskScheduler;
 import com.sappenin.utils.json.JsonUtils;
 import lombok.Getter;
+import org.joda.time.DateTime;
 
 /**
  * Abstract implementation of {@link TaskScheduler} that uses named-tasks to allow only a single task with a given name
@@ -35,59 +35,80 @@ import lombok.Getter;
  * @author David Fuelling
  */
 @Getter
-public abstract class AbstractAggregatingTaskScheduler<T> extends AbstractTaskScheduler<T> implements TaskScheduler<T>
+public abstract class AbstractAggregatingTaskScheduler<T extends AggregatingTaskSchedulerPayload>
+		extends AbstractTaskScheduler<T> implements TaskScheduler<T>
 {
+
+	private final AggregateTaskSchedulingHelper aggregateTaskSchedulingHelper;
+
+	/**
+	 * Required Args Constructor.  This constructor uses the default version of {@link AggregateTaskSchedulingHelper}.
+	 *
+	 * @param jsonUtils An instance of {@link JsonUtils}.
+	 */
+	public AbstractAggregatingTaskScheduler(final JsonUtils jsonUtils)
+	{
+		this(jsonUtils, new Impl());
+	}
 
 	/**
 	 * Required Args Constructor.
 	 */
-	public AbstractAggregatingTaskScheduler(final JsonUtils jsonUtils)
+	public AbstractAggregatingTaskScheduler(final JsonUtils jsonUtils,
+			final AggregateTaskSchedulingHelper aggregateTaskSchedulingHelper)
 	{
 		super(jsonUtils);
+
+		Preconditions.checkNotNull(aggregateTaskSchedulingHelper);
+		this.aggregateTaskSchedulingHelper = aggregateTaskSchedulingHelper;
 	}
 
 	@Override
-	public void schedule(T payload)
+	protected TaskOptions buildTaskOptions(final T aggregatingTaskPayload) throws JsonProcessingException
 	{
+		TaskOptions taskOptions = super.buildTaskOptions(aggregatingTaskPayload);
 
-		Preconditions.checkNotNull(payload);
-		this.getLogger().info("Scheduling Task (Namespace=\"" + NamespaceManager.get() + "\"): " + payload);
+		DateTime nextRunDateTime = this.aggregateTaskSchedulingHelper.getNextScheduledRunDateTime();
+		taskOptions.etaMillis(nextRunDateTime.getMillis());
 
+		// Get the task name from the payload, and then append a unique datetime stamp to it based upon the current
+		// scheduling characteristics of the system.
+		String taskName =
+				this.aggregateTaskSchedulingHelper.computeDateTimeStampForNextSchedulingPeriod(nextRunDateTime) + "-"
+						+ aggregatingTaskPayload.getAggregatedTaskName();
+		taskOptions.taskName(taskName);
+
+		return taskOptions;
+	}
+
+	@Override
+	public void schedule(final T payload)
+	{
 		try
 		{
-			final Queue queue = QueueFactory.getQueue(getProcessingQueueName());
-
-			// Enqueue this task
-			TaskOptions taskOptions = TaskOptions.Builder.withDefaults();
-
-			// Convert the Payload into JSON. We use JSON instead of a
-			// DeferredTask because JSON is less brittle when
-			// the payload class structure changes than a Serialized class.
-			final String jsonPayload = this.getJsonUtils().toJSON(payload);
-			taskOptions = taskOptions.payload(jsonPayload);
-			taskOptions = taskOptions.url(getProcessingQueueUrlPath());
-			taskOptions = taskOptions.method(Method.POST);
-			taskOptions = taskOptions.header("Accept", "application/json");
-			taskOptions = taskOptions.header("Content-Type", "application/json");
-			// taskOptions = taskOptions.header("X-Appengine-Current-Namespace",
-			// NamespaceManager.get());
-
-			// Kick off a Task to handle callbacks
-			queue.add(taskOptions);
+			super.schedule(payload);
 		}
-		catch (Exception e)
+		catch (TaskAlreadyExistsException e)
 		{
-			throw new RuntimeException(e);
+			// Do nothing - eat this exception!  If the task already exists, it simply means we're aggregating
+			// properly.
 		}
-
-		this.getLogger().info("Task Scheduled (Namespace=\"" + NamespaceManager.get() + "\"): " + payload);
-
+		catch (RuntimeException re)
+		{
+			if (TaskAlreadyExistsException.class.isAssignableFrom(re.getCause().getClass()))
+			{
+				// Do nothing - eat this exception!  If the task already exists, it simply means we're aggregating
+				// properly.
+			}
+			else
+			{
+				throw re;
+			}
+		}
 	}
 
 	// /////////////////////
 	// Protected Helpers
 	// /////////////////////
-
-	protected abstract String getTaskName();
 
 }

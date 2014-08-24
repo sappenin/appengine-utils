@@ -4,19 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.sappenin.utils.appengine.tasks.base.AbstractTaskScheduler;
 import com.sappenin.utils.json.JsonUtils;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -31,14 +30,12 @@ public class AbstractAggregatingTaskSchedulerTest
 
 	private static final String PROCESSING_QUEUE_URL_TEST = "processingQueueUrlTest";
 
-	private static final String HELLO = "Hello";
-
 	private final Logger logger = Logger.getLogger(this.getClass().getName());
 
 	@Mock
 	JsonUtils jsonUtils;
 
-	private AbstractTaskScheduler<DummyPayload> impl;
+	private AbstractAggregatingTaskScheduler<DummyPayloadWithName> impl;
 
 	@Before
 	public void before() throws JsonProcessingException
@@ -47,7 +44,7 @@ public class AbstractAggregatingTaskSchedulerTest
 
 		Mockito.when(jsonUtils.toJSON(Mockito.<DummyPayload>any())).thenReturn("{dummyJson}");
 
-		this.impl = new AbstractTaskScheduler<DummyPayload>(jsonUtils)
+		this.impl = new AbstractAggregatingTaskScheduler<DummyPayloadWithName>(jsonUtils)
 		{
 			@Override
 			protected Logger getLogger()
@@ -72,62 +69,13 @@ public class AbstractAggregatingTaskSchedulerTest
 	@Test
 	public void testBuildTaskOptions() throws Exception
 	{
-		final DummyPayload dummyPayload = new DummyPayload("dummyPropertyTest");
+		final DummyPayloadWithName dummyPayloadWithName = new DummyPayloadWithName("dummyPropertyTest");
 
-		TaskOptions actual = impl.buildTaskOptions(dummyPayload);
+		TaskOptions actual = impl.buildTaskOptions(dummyPayloadWithName);
 
-		assertThat(actual.getEtaMillis(), is(nullValue()));
+		assertThat(actual.getEtaMillis(), is(notNullValue()));
 		assertThat(actual.getPayload(), is(notNullValue()));
 		assertThat(actual.getUrl(), is(PROCESSING_QUEUE_URL_TEST));
-	}
-
-	@Test
-	public void testGetLogger() throws Exception
-	{
-		assertThat(impl.getLogger(), is(logger));
-	}
-
-	@Test
-	public void testGetProcessingQueueName() throws Exception
-	{
-		assertThat(impl.getProcessingQueueName(), is(PROCESSING_QUEUE_NAME_TEST));
-	}
-
-	@Test
-	public void testGetProcessingQueueUrlPath() throws Exception
-	{
-		assertThat(impl.getProcessingQueueUrlPath(), is(PROCESSING_QUEUE_URL_TEST));
-	}
-
-	@Test(expected = NullPointerException.class)
-	public void testGetJsonPayloadFromInputStreamRequest_Null() throws Exception
-	{
-		InputStream inputStream = null;
-		impl.getJsonPayloadFromRequest(inputStream);
-	}
-
-	@Test
-	public void testGetJsonPayloadFromInputStreamRequest() throws Exception
-	{
-		try (InputStream inputStream = new ByteArrayInputStream(HELLO.getBytes(StandardCharsets.UTF_8)))
-		{
-			String actual = impl.getJsonPayloadFromRequest(inputStream);
-			assertThat(actual, is(HELLO));
-		}
-	}
-
-	@Test
-	public void testGetJsonPayloadFromHttpServletRequest() throws Exception
-	{
-		InputStream inputStream = new ByteArrayInputStream(HELLO.getBytes(StandardCharsets.UTF_8));
-		ServletInputStream servletInputStreamMock = new DelegatingServletInputStream(inputStream);
-
-		HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
-		Mockito.when(httpServletRequest.getInputStream()).thenReturn(servletInputStreamMock);
-
-		String actual = impl.getJsonPayloadFromRequest(httpServletRequest);
-
-		assertThat(actual, is(HELLO));
 	}
 
 	@Test
@@ -136,44 +84,33 @@ public class AbstractAggregatingTaskSchedulerTest
 		assertThat(impl.getJsonUtils(), is(jsonUtils));
 	}
 
-	@Data
-	private static final class DummyPayload
+	@Getter
+	@Setter
+	@RequiredArgsConstructor
+	@EqualsAndHashCode
+	@ToString
+	private static class DummyPayload
 	{
+		@NonNull
 		private final String dummyProperty;
 	}
 
-	private static class DelegatingServletInputStream extends ServletInputStream
+	@Getter
+	@Setter
+	@EqualsAndHashCode(callSuper = true)
+	@ToString(callSuper = true)
+	private static class DummyPayloadWithName extends DummyPayload implements AggregatingTaskSchedulerPayload
 	{
-		private final InputStream sourceStream;
-
-		/**
-		 * Create a DelegatingServletInputStream for the given source stream.
-		 *
-		 * @param sourceStream the source stream (never <code>null</code>)
-		 */
-		public DelegatingServletInputStream(InputStream sourceStream)
+		public DummyPayloadWithName(String dummyProperty)
 		{
-			this.sourceStream = sourceStream;
+			super(dummyProperty);
 		}
 
-		/**
-		 * Return the underlying source stream (never <code>null</code>).
-		 */
-		public final InputStream getSourceStream()
+		@Override
+		public String getAggregatedTaskName()
 		{
-			return this.sourceStream;
+			return "aggTaskName";
 		}
-
-		public int read() throws IOException
-		{
-			return this.sourceStream.read();
-		}
-
-		public void close() throws IOException
-		{
-			super.close();
-			this.sourceStream.close();
-		}
-
 	}
+
 }

@@ -15,6 +15,7 @@
  */
 package com.sappenin.utils.appengine.tasks.base;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
@@ -44,6 +45,8 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 {
 	public static final String SERVLET_PATH__TASK = "/task";
 
+	private static final String APPLICATION_JSON = "application/json";
+
 	private final JsonUtils jsonUtils;
 
 	/**
@@ -51,13 +54,13 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 	 */
 	public AbstractTaskScheduler(final JsonUtils jsonUtils)
 	{
+		Preconditions.checkNotNull(jsonUtils);
 		this.jsonUtils = jsonUtils;
 	}
 
 	@Override
 	public void schedule(T payload)
 	{
-
 		Preconditions.checkNotNull(payload);
 		this.getLogger().info("Scheduling Task (Namespace=\"" + NamespaceManager.get() + "\"): " + payload);
 
@@ -66,19 +69,7 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 			final Queue queue = QueueFactory.getQueue(getProcessingQueueName());
 
 			// Enqueue this task
-			TaskOptions taskOptions = TaskOptions.Builder.withDefaults();
-
-			// Convert the Payload into JSON. We use JSON instead of a
-			// DeferredTask because JSON is less brittle when
-			// the payload class structure changes than a Serialized class.
-			final String jsonPayload = this.getJsonUtils().toJSON(payload);
-			taskOptions = taskOptions.payload(jsonPayload);
-			taskOptions = taskOptions.url(getProcessingQueueUrlPath());
-			taskOptions = taskOptions.method(Method.POST);
-			taskOptions = taskOptions.header("Accept", "application/json");
-			taskOptions = taskOptions.header("Content-Type", "application/json");
-			// taskOptions = taskOptions.header("X-Appengine-Current-Namespace",
-			// NamespaceManager.get());
+			TaskOptions taskOptions = this.buildTaskOptions(payload);
 
 			// Kick off a Task to handle callbacks
 			queue.add(taskOptions);
@@ -89,7 +80,31 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 		}
 
 		this.getLogger().info("Task Scheduled (Namespace=\"" + NamespaceManager.get() + "\"): " + payload);
+	}
 
+	/**
+	 * Helper method to build a {@link TaskOptions} from a {@code payload} of type <T>.
+	 *
+	 * @param payload An instance of type <T>.
+	 *
+	 * @return
+	 */
+	protected TaskOptions buildTaskOptions(final T payload) throws JsonProcessingException
+	{
+		// Enqueue this task
+		TaskOptions taskOptions = TaskOptions.Builder.withDefaults();
+
+		// Convert the Payload into JSON. We use JSON instead of a
+		// DeferredTask because JSON is less brittle when
+		// the payload class structure changes than a Serialized class.
+		final String jsonPayload = this.getJsonUtils().toJSON(payload);
+		taskOptions = taskOptions.payload(jsonPayload);
+		taskOptions = taskOptions.url(getProcessingQueueUrlPath());
+		taskOptions = taskOptions.method(Method.POST);
+		taskOptions = taskOptions.header("Accept", APPLICATION_JSON);
+		taskOptions = taskOptions.header("Content-Type", APPLICATION_JSON);
+
+		return taskOptions;
 	}
 
 	// /////////////////////
@@ -110,7 +125,8 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 	protected abstract String getProcessingQueueUrlPath();
 
 	/**
-	 * Helper method to grab a Json Payload from the InputStream of an {@link HttpServletRequest}.
+	 * Helper method to grab a Json Payload from the InputStream of an {@link HttpServletRequest}.  Not used in this
+	 * class but used by sub-classes.
 	 *
 	 * @param httpServletRequest
 	 *
@@ -124,7 +140,7 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 
 	/**
 	 * Helper method to grab a Json Payload from an InputStream.  This is generally used in concert with an {@link
-	 * HttpServletRequest}, but doesn't strictly need to be.
+	 * HttpServletRequest}, but doesn't strictly need to be.   Not used in this class but used by sub-classes.
 	 *
 	 * @param inputStream
 	 *
