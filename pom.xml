@@ -26,7 +26,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.sappenin.utils.appengine</groupId>
     <artifactId>appengine-utils</artifactId>
-    <version>1.0.4-SNAPSHOT</version>
+    <version>1.0.4</version>
 
     <name>App Engine Utils</name>
     <description>Utilities classes for use with Google App Engine</description>
