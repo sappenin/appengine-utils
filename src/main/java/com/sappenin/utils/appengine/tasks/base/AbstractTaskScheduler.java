@@ -43,8 +43,6 @@ import java.util.logging.Logger;
 @Getter
 public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 {
-	public static final String SERVLET_PATH__TASK = "/task";
-
 	private static final String APPLICATION_JSON = "application/json";
 
 	private final JsonUtils jsonUtils;
@@ -97,12 +95,13 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 		// Convert the Payload into JSON. We use JSON instead of a
 		// DeferredTask because JSON is less brittle when
 		// the payload class structure changes than a Serialized class.
-		final String jsonPayload = this.getJsonUtils().toJSON(payload);
+		final String jsonPayload = this.getJsonUtils().toJson(payload);
 		taskOptions = taskOptions.payload(jsonPayload);
 		taskOptions = taskOptions.url(getProcessingQueueUrlPath());
 		taskOptions = taskOptions.method(Method.POST);
 		taskOptions = taskOptions.header("Accept", APPLICATION_JSON);
 		taskOptions = taskOptions.header("Content-Type", APPLICATION_JSON);
+		//taskOptions = taskOptions.header("Host", this.getHost());
 
 		return taskOptions;
 	}
@@ -123,6 +122,11 @@ public abstract class AbstractTaskScheduler<T> implements TaskScheduler<T>
 	 * "/tasks/callbacks/processCallback".
 	 */
 	protected abstract String getProcessingQueueUrlPath();
+
+	/**
+	 * @return A {@link String} representing the host that a particular aggregate task should be scheduled onto.
+	 */
+	//protected abstract String getHost();
 
 	/**
 	 * Helper method to grab a Json Payload from the InputStream of an {@link HttpServletRequest}.  Not used in this

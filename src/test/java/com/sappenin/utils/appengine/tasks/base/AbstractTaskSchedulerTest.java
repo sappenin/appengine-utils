@@ -30,6 +30,8 @@ public class AbstractTaskSchedulerTest
 
 	private static final String PROCESSING_QUEUE_URL_TEST = "processingQueueUrlTest";
 
+	//private static final String PROCESSING_QUEUE_HOST_TEST = "processingQueueHostTest";
+
 	private static final String HELLO = "Hello";
 
 	private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -44,7 +46,7 @@ public class AbstractTaskSchedulerTest
 	{
 		MockitoAnnotations.initMocks(this);
 
-		Mockito.when(jsonUtils.toJSON(Mockito.<DummyPayload>any())).thenReturn("{dummyJson}");
+		Mockito.when(jsonUtils.toJson(Mockito.<DummyPayload>any())).thenReturn("{dummyJson}");
 
 		this.impl = new AbstractTaskScheduler<DummyPayload>(jsonUtils)
 		{
@@ -65,6 +67,12 @@ public class AbstractTaskSchedulerTest
 			{
 				return PROCESSING_QUEUE_URL_TEST;
 			}
+
+//			@Override
+//			protected String getHost()
+//			{
+//				return PROCESSING_QUEUE_HOST_TEST;
+//			}
 		};
 	}
 

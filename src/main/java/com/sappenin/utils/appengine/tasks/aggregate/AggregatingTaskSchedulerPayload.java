@@ -1,5 +1,7 @@
 package com.sappenin.utils.appengine.tasks.aggregate;
 
+import org.joda.time.DateTime;
+
 /**
  * An interface for defining payloads that the {@link AbstractAggregatingTaskScheduler} can operate with.
  */
@@ -21,4 +23,10 @@ public interface AggregatingTaskSchedulerPayload
 	 * @return
 	 */
 	String getAggregatedTaskName();
+
+	/**
+	 * @return Return a {@link DateTime} representing the date and time that this task should be scheduled in the
+	 * infrastructure.
+	 */
+	DateTime getEtaScheduledDateTime();
 }

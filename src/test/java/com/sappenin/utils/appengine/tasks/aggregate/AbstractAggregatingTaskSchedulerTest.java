@@ -10,6 +10,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -18,8 +20,10 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.logging.Logger;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.when;
 
 /**
  * A unit test for {@link AbstractTaskScheduler}.
@@ -30,10 +34,12 @@ public class AbstractAggregatingTaskSchedulerTest
 
 	private static final String PROCESSING_QUEUE_URL_TEST = "processingQueueUrlTest";
 
+	//private static final String PROCESSING_QUEUE_HOST_TEST = "processingQueueHostTest";
+
 	private final Logger logger = Logger.getLogger(this.getClass().getName());
 
 	@Mock
-	JsonUtils jsonUtils;
+	private JsonUtils jsonUtils;
 
 	private AbstractAggregatingTaskScheduler<DummyPayloadWithName> impl;
 
@@ -42,7 +48,7 @@ public class AbstractAggregatingTaskSchedulerTest
 	{
 		MockitoAnnotations.initMocks(this);
 
-		Mockito.when(jsonUtils.toJSON(Mockito.<DummyPayload>any())).thenReturn("{dummyJson}");
+		when(jsonUtils.toJson(Mockito.<DummyPayload>any())).thenReturn("{dummyJson}");
 
 		this.impl = new AbstractAggregatingTaskScheduler<DummyPayloadWithName>(jsonUtils)
 		{
@@ -63,6 +69,13 @@ public class AbstractAggregatingTaskSchedulerTest
 			{
 				return PROCESSING_QUEUE_URL_TEST;
 			}
+
+			//			@Override
+			//			protected String getHost()
+			//			{
+			//				return PROCESSING_QUEUE_HOST_TEST;
+			//			}
+
 		};
 	}
 
@@ -110,6 +123,12 @@ public class AbstractAggregatingTaskSchedulerTest
 		public String getAggregatedTaskName()
 		{
 			return "aggTaskName";
+		}
+
+		@Override
+		public DateTime getEtaScheduledDateTime()
+		{
+			return DateTime.now(DateTimeZone.UTC);
 		}
 	}
 

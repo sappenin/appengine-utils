@@ -18,13 +18,13 @@ package com.sappenin.utils.appengine.tasks.aggregate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.appengine.api.taskqueue.TaskAlreadyExistsException;
 import com.google.appengine.api.taskqueue.TaskOptions;
-import com.google.common.base.Preconditions;
 import com.sappenin.utils.appengine.tasks.TaskScheduler;
-import com.sappenin.utils.appengine.tasks.aggregate.AggregateTaskSchedulingHelper.Impl;
 import com.sappenin.utils.appengine.tasks.base.AbstractTaskScheduler;
 import com.sappenin.utils.json.JsonUtils;
 import lombok.Getter;
 import org.joda.time.DateTime;
+
+import java.util.logging.Level;
 
 /**
  * Abstract implementation of {@link TaskScheduler} that uses named-tasks to allow only a single task with a given name
@@ -38,29 +38,12 @@ import org.joda.time.DateTime;
 public abstract class AbstractAggregatingTaskScheduler<T extends AggregatingTaskSchedulerPayload>
 		extends AbstractTaskScheduler<T> implements TaskScheduler<T>
 {
-
-	private final AggregateTaskSchedulingHelper aggregateTaskSchedulingHelper;
-
-	/**
-	 * Required Args Constructor.  This constructor uses the default version of {@link AggregateTaskSchedulingHelper}.
-	 *
-	 * @param jsonUtils An instance of {@link JsonUtils}.
-	 */
-	public AbstractAggregatingTaskScheduler(final JsonUtils jsonUtils)
-	{
-		this(jsonUtils, new Impl());
-	}
-
 	/**
 	 * Required Args Constructor.
 	 */
-	public AbstractAggregatingTaskScheduler(final JsonUtils jsonUtils,
-			final AggregateTaskSchedulingHelper aggregateTaskSchedulingHelper)
+	public AbstractAggregatingTaskScheduler(final JsonUtils jsonUtils)
 	{
 		super(jsonUtils);
-
-		Preconditions.checkNotNull(aggregateTaskSchedulingHelper);
-		this.aggregateTaskSchedulingHelper = aggregateTaskSchedulingHelper;
 	}
 
 	@Override
@@ -68,14 +51,10 @@ public abstract class AbstractAggregatingTaskScheduler<T extends AggregatingTask
 	{
 		TaskOptions taskOptions = super.buildTaskOptions(aggregatingTaskPayload);
 
-		DateTime nextRunDateTime = this.aggregateTaskSchedulingHelper.getNextScheduledRunDateTime();
+		DateTime nextRunDateTime = aggregatingTaskPayload.getEtaScheduledDateTime();
 		taskOptions.etaMillis(nextRunDateTime.getMillis());
 
-		// Get the task name from the payload, and then append a unique datetime stamp to it based upon the current
-		// scheduling characteristics of the system.
-		String taskName =
-				this.aggregateTaskSchedulingHelper.computeDateTimeStampForNextSchedulingPeriod(nextRunDateTime) + "-"
-						+ aggregatingTaskPayload.getAggregatedTaskName();
+		String taskName = aggregatingTaskPayload.getAggregatedTaskName();
 		taskOptions.taskName(taskName);
 
 		return taskOptions;
@@ -92,13 +71,23 @@ public abstract class AbstractAggregatingTaskScheduler<T extends AggregatingTask
 		{
 			// Do nothing - eat this exception!  If the task already exists, it simply means we're aggregating
 			// properly.
+			getLogger().log(Level.WARNING,
+					"Tried to schedule AggregateNotification Task with name: " + payload == null ?
+							"unkown" :
+							payload.getAggregatedTaskName(), e);
+
 		}
 		catch (RuntimeException re)
 		{
+			// Usually, the TaskAlreadyExistsException is inside of a RuntimeException
 			if (TaskAlreadyExistsException.class.isAssignableFrom(re.getCause().getClass()))
 			{
 				// Do nothing - eat this exception!  If the task already exists, it simply means we're aggregating
 				// properly.
+				getLogger().log(Level.WARNING,
+						"Tried to schedule AggregateNotification Task with name: " + payload == null ?
+								"unkown" :
+								payload.getAggregatedTaskName(), re);
 			}
 			else
 			{
@@ -106,9 +95,5 @@ public abstract class AbstractAggregatingTaskScheduler<T extends AggregatingTask
 			}
 		}
 	}
-
-	// /////////////////////
-	// Protected Helpers
-	// /////////////////////
 
 }
