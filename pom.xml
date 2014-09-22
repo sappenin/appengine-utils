@@ -64,7 +64,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <sappenin-java-utils.version>1.0.1</sappenin-java-utils.version>
+        <sappenin-java-utils.version>1.0.2-SNAPSHOT</sappenin-java-utils.version>
         <appengine.target.version>1.9.6</appengine.target.version>
         <objectify.version>5.0.3</objectify.version>
 
