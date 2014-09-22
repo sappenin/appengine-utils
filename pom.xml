@@ -351,6 +351,7 @@
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.5</version>
                         <configuration>
+                            <useAgent>true</useAgent>
                         </configuration>
                         <executions>
                             <execution>
