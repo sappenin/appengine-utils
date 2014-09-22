@@ -1,6 +1,7 @@
 appengine-utils
 ===============
 [![Build Status](https://travis-ci.org/sappenin/appengine-utils.png)](https://travis-ci.org/sappenin/appengine-utils)
+[![Coverage Status](https://coveralls.io/repos/sappenin/appengine-utils/badge.png?branch=master)](https://coveralls.io/r/sappenin/appengine-utils?branch=master)
 
 Various utilities for interacting with Google App Engine
 
