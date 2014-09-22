@@ -64,7 +64,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <sappenin-java-utils.version>1.0.2-SNAPSHOT</sappenin-java-utils.version>
+        <sappenin-java-utils.version>1.0.2</sappenin-java-utils.version>
         <appengine.target.version>1.9.11</appengine.target.version>
         <objectify.version>5.0.3</objectify.version>
 
@@ -308,6 +308,29 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>2.2.0</version>
+                <configuration>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <format>xml</format>
+                    <maxmem>256m</maxmem>
+                    <!-- aggregated reports for multi-module projects -->
+                    <aggregate>true</aggregate>
+                    <check>
+                        <haltOnFailure>false</haltOnFailure>
+                    </check>
+                </configuration>
             </plugin>
 
         </plugins>
