@@ -343,6 +343,9 @@
                     <value>true</value>
                 </property>
             </activation>
+            <properties>
+                <gpg.useagent>true</gpg.useagent>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
