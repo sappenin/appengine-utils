@@ -96,4 +96,15 @@ public abstract class AbstractAggregatingTaskScheduler<T extends AggregatingTask
 		}
 	}
 
+	/**
+	 * Protected Getter for access by implementing classes.
+	 *
+	 * @return
+	 */
+	@Override
+	protected JsonUtils getJsonUtils()
+	{
+		return super.getJsonUtils();
+	}
+
 }

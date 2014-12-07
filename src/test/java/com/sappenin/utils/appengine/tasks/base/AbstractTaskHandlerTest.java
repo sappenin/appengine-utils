@@ -1,9 +1,11 @@
 package com.sappenin.utils.appengine.tasks.base;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.appengine.api.taskqueue.TaskOptions;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import com.sappenin.utils.json.JsonUtils;
-import lombok.Data;
+import com.sappenin.utils.json.JsonUtilsClassTypeMapper;
+import lombok.Getter;
+import lombok.Setter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -12,175 +14,188 @@ import org.mockito.MockitoAnnotations;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.when;
 
 /**
  * A unit test for {@link AbstractTaskScheduler}.
  */
 public class AbstractTaskHandlerTest
 {
-	private static final String PROCESSING_QUEUE_NAME_TEST = "processingQueueNameTest";
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private static final String PROCESSING_QUEUE_URL_TEST = "processingQueueUrlTest";
-
-	//private static final String PROCESSING_QUEUE_HOST_TEST = "processingQueueHostTest";
-
-	private static final String HELLO = "Hello";
-
-	private final Logger logger = Logger.getLogger(this.getClass().getName());
+	private static final String DUMMY_PAYLOAD_JSON_STRING = "{\"dummyProperty\":\"DummyValue\"}";
 
 	@Mock
-	JsonUtils jsonUtils;
+	private JsonUtils jsonUtilsMock;
 
-	private AbstractTaskScheduler<DummyPayload> impl;
+	@Mock
+	private JsonUtilsClassTypeMapper jsonUtilsClassTypeMapperMock;
+
+	@Mock
+	private ObjectMapper objectMapperMock;
+
+	@Mock
+	private HttpServletRequest httpServletRequestMock;
+
+	@Mock
+	private HttpServletResponse httpServletResponseMock;
+
+	private AbstractTaskHandler<DummyPayload> handler;
+
+	private DummyPayload dummyPayload;
 
 	@Before
-	public void before() throws JsonProcessingException
+	public void before() throws IOException
 	{
 		MockitoAnnotations.initMocks(this);
 
-		Mockito.when(jsonUtils.toJson(Mockito.<DummyPayload>any())).thenReturn("{dummyJson}");
-
-		this.impl = new AbstractTaskScheduler<DummyPayload>(jsonUtils)
+		////////////////
+		// Mock the HttpServletRequest to Return JSON
+		final InputStream inputStream = new ByteArrayInputStream(
+				DUMMY_PAYLOAD_JSON_STRING.getBytes(StandardCharsets.UTF_8));
+		ServletInputStream servletInputStream = new ServletInputStream()
 		{
+			@Override
+			public int read() throws IOException
+			{
+				return inputStream.read();
+			}
+		};
+		when(this.httpServletRequestMock.getInputStream()).thenReturn(servletInputStream);
+		////////////////
+
+		this.handler = new AbstractTaskHandler<DummyPayload>(jsonUtilsMock, jsonUtilsClassTypeMapperMock)
+		{
+			// Sets the value of DummyProperty to "NewValue"
+			@Override
+			protected void handleHelper(final DummyPayload payload)
+			{
+				Preconditions.checkNotNull(payload);
+
+				// Do something...
+				payload.setDummyProperty("NewValue");
+			}
+
 			@Override
 			protected Logger getLogger()
 			{
 				return logger;
 			}
-
-			@Override
-			protected String getProcessingQueueName()
-			{
-				return PROCESSING_QUEUE_NAME_TEST;
-			}
-
-			@Override
-			protected String getProcessingQueueUrlPath()
-			{
-				return PROCESSING_QUEUE_URL_TEST;
-			}
-
-//			@Override
-//			protected String getHost()
-//			{
-//				return PROCESSING_QUEUE_HOST_TEST;
-//			}
 		};
+
+		// DummyPayload to use and verify.
+		this.dummyPayload = new DummyPayload();
 	}
 
-	@Test
-	public void testBuildTaskOptions() throws Exception
+	///////////////////////////////
+	// 	testHandle
+	///////////////////////////////
+
+	@Test(expected = NullPointerException.class)
+	public void testHandle_NullHttpServletRequest() throws Exception
 	{
-		final DummyPayload dummyPayload = new DummyPayload("dummyPropertyTest");
+		HttpServletRequest httpServletRequest = null;
+		HttpServletResponse httpServletResponse = this.httpServletResponseMock;
 
-		TaskOptions actual = impl.buildTaskOptions(dummyPayload);
-
-		assertThat(actual.getEtaMillis(), is(nullValue()));
-		assertThat(actual.getPayload(), is(notNullValue()));
-		assertThat(actual.getUrl(), is(PROCESSING_QUEUE_URL_TEST));
-	}
-
-	@Test
-	public void testGetLogger() throws Exception
-	{
-		assertThat(impl.getLogger(), is(logger));
-	}
-
-	@Test
-	public void testGetProcessingQueueName() throws Exception
-	{
-		assertThat(impl.getProcessingQueueName(), is(PROCESSING_QUEUE_NAME_TEST));
-	}
-
-	@Test
-	public void testGetProcessingQueueUrlPath() throws Exception
-	{
-		assertThat(impl.getProcessingQueueUrlPath(), is(PROCESSING_QUEUE_URL_TEST));
+		this.handler.handle(httpServletRequest, httpServletResponse);
 	}
 
 	@Test(expected = NullPointerException.class)
-	public void testGetJsonPayloadFromInputStreamRequest_Null() throws Exception
+	public void testHandle_NullHttpServletResponse() throws Exception
 	{
-		InputStream inputStream = null;
-		impl.getJsonPayloadFromRequest(inputStream);
+		HttpServletRequest httpServletRequest = this.httpServletRequestMock;
+		HttpServletResponse httpServletResponse = null;
+
+		this.handler.handle(httpServletRequest, httpServletResponse);
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void testHandle_NullPayloadFromJsonUtils() throws Exception
+	{
+		when(jsonUtilsMock.fromJson(httpServletRequestMock, jsonUtilsClassTypeMapperMock)).thenReturn(null);
+
+		this.handler.handle(this.httpServletRequestMock, this.httpServletResponseMock);
 	}
 
 	@Test
-	public void testGetJsonPayloadFromInputStreamRequest() throws Exception
+	public void testHandle() throws Exception
 	{
-		try (InputStream inputStream = new ByteArrayInputStream(HELLO.getBytes(StandardCharsets.UTF_8)))
-		{
-			String actual = impl.getJsonPayloadFromRequest(inputStream);
-			assertThat(actual, is(HELLO));
-		}
+		final DummyPayload dummyPayload = new DummyPayload();
+		when(jsonUtilsMock.fromJson(Mockito.<HttpServletRequest>any(), Mockito.<JsonUtilsClassTypeMapper>any()))
+				.thenReturn(dummyPayload);
+
+		this.handler.handle(this.httpServletRequestMock, this.httpServletResponseMock);
+
+		assertThat(dummyPayload.getDummyProperty(), is("NewValue"));
+	}
+
+	///////////////////////////////
+	// 	testHandleHelper(Payload)
+	///////////////////////////////
+
+	@Test(expected = NullPointerException.class)
+	public void testHandleHelper_Null() throws Exception
+	{
+		this.handler.handleHelper(null);
 	}
 
 	@Test
-	public void testGetJsonPayloadFromHttpServletRequest() throws Exception
+	public void testHandleHelper() throws Exception
 	{
-		InputStream inputStream = new ByteArrayInputStream(HELLO.getBytes(StandardCharsets.UTF_8));
-		ServletInputStream servletInputStreamMock = new DelegatingServletInputStream(inputStream);
+		DummyPayload dummyPayload = new DummyPayload();
+		this.handler.handleHelper(dummyPayload);
 
-		HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
-		Mockito.when(httpServletRequest.getInputStream()).thenReturn(servletInputStreamMock);
+		assertThat(dummyPayload.getDummyProperty(), is("NewValue"));
+	}
 
-		String actual = impl.getJsonPayloadFromRequest(httpServletRequest);
+	///////////////////////////////
+	// 	testHandleHelper(Payload, Request, Response)
+	///////////////////////////////
 
-		assertThat(actual, is(HELLO));
+	@Test(expected = NullPointerException.class)
+	public void testHandleHelper_PayloadRequestResponse_NullPayload() throws Exception
+	{
+		this.handler.handleHelper(null, this.httpServletRequestMock, this.httpServletResponseMock);
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void testHandleHelper_PayloadRequestResponse_NullRequest() throws Exception
+	{
+		this.handler.handleHelper(dummyPayload, null, this.httpServletResponseMock);
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void testHandleHelper_PayloadRequestResponse_NullResponse() throws Exception
+	{
+		this.handler.handleHelper(dummyPayload, this.httpServletRequestMock, null);
 	}
 
 	@Test
-	public void testGetJsonUtils() throws Exception
+	public void testHandleHelper_PayloadRequestResponse() throws Exception
 	{
-		assertThat(impl.getJsonUtils(), is(jsonUtils));
+		DummyPayload dummyPayload = new DummyPayload();
+		this.handler.handleHelper(dummyPayload, this.httpServletRequestMock, this.httpServletResponseMock);
+		assertThat(dummyPayload.getDummyProperty(), is("NewValue"));
 	}
 
-	@Data
+	///////////////////////////////
+	// Private Helpers
+	///////////////////////////////
+
+	@Getter
+	@Setter
 	private static final class DummyPayload
 	{
-		private final String dummyProperty;
+		private String dummyProperty;
 	}
 
-	private static class DelegatingServletInputStream extends ServletInputStream
-	{
-		private final InputStream sourceStream;
-
-		/**
-		 * Create a DelegatingServletInputStream for the given source stream.
-		 *
-		 * @param sourceStream the source stream (never <code>null</code>)
-		 */
-		public DelegatingServletInputStream(InputStream sourceStream)
-		{
-			this.sourceStream = sourceStream;
-		}
-
-		/**
-		 * Return the underlying source stream (never <code>null</code>).
-		 */
-		public final InputStream getSourceStream()
-		{
-			return this.sourceStream;
-		}
-
-		public int read() throws IOException
-		{
-			return this.sourceStream.read();
-		}
-
-		public void close() throws IOException
-		{
-			super.close();
-			this.sourceStream.close();
-		}
-
-	}
 }

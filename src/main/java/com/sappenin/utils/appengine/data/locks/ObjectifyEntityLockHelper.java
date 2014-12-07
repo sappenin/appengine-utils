@@ -44,11 +44,11 @@ public class ObjectifyEntityLockHelper implements Serializable
 
 	/**
 	 * Checks for a Collision for a particular Lock Value. If none is found, this function will reserve a lock for a
-	 * particular entity. Must be called inside of an existing Objectify transaction.<br/> <br/> This function is
-	 * performed inside of an existing transaction so that if a collision is detected, no parent caller will succeed
-	 * accidentally. Additionally, if an exception is thrown, then the caller can rollback the entire transaction
-	 * and no
-	 * lock will be stored.
+	 * particular entity. Must be called inside of an existing Objectify transaction so that if a collision is
+	 * detected,
+	 * no parent caller will succeed accidentally. Additionally, if an exception is thrown, then the caller can
+	 * rollback
+	 * the entire transaction and no lock will be stored.
 	 *
 	 * @return
 	 */
@@ -60,16 +60,15 @@ public class ObjectifyEntityLockHelper implements Serializable
 				"This function must be called inside an existing Objectify transaction.");
 		Preconditions.checkNotNull(lock);
 
-		// The old way: // KeyHelperTyped.toTypedKey(lock.getKey());
 		final Key<L> typedLockKey = com.googlecode.objectify.Key.<L>create(lock.getKey());
 		try
 		{
 			if (ObjectifyService.ofy().load().key(typedLockKey).now() != null)
 			{
 				// There is a collision.
-				throw new EntityLockCollision("Unique Value Collision: The " + lock.getClass()
-						+ " class does not allow two entities to share the same value" + " (value='" + lock
-						.getEntityFieldValue() + "')");
+				throw new EntityLockCollision(String.format(
+						"Unique Value Collision: The %s class does not allow two entities to share the same value "
+								+ "(value= %s)", lock.getClass(), lock.getEntityFieldValue()));
 			}
 		}
 		catch (final NotFoundException nfe)
@@ -94,20 +93,14 @@ public class ObjectifyEntityLockHelper implements Serializable
 				"This function must be called inside an existing Objectify transaction.");
 		Preconditions.checkNotNull(locks);
 
-		for (final AbstractEntityStringLock lock : locks)
+		try
 		{
-			try
-			{
-				// This can be async
-				ObjectifyService.ofy().delete().entity(lock);
-			}
-			catch (final RuntimeException re)
-			{
-				logger.log(Level.SEVERE,
-						"Error Trying to delete an AbstractEntityStringLock after a #create exception.  Continuing on " +
-								"to attempt to delete other Locks, but the error is as follows.",
-						re);
-			}
+			// This can be async
+			ObjectifyService.ofy().delete().entities(locks);
+		}
+		catch (final RuntimeException re)
+		{
+			logger.log(Level.SEVERE, String.format("Unable to safely remove locks: %s", locks), re);
 		}
 	}
 }

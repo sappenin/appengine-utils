@@ -15,149 +15,98 @@
  */
 package com.sappenin.utils.appengine.tasks.base;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.appengine.api.NamespaceManager;
-import com.google.appengine.api.taskqueue.Queue;
-import com.google.appengine.api.taskqueue.QueueFactory;
-import com.google.appengine.api.taskqueue.TaskOptions;
-import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
-import com.google.common.io.CharStreams;
-import com.sappenin.utils.appengine.tasks.TaskScheduler;
+import com.sappenin.utils.appengine.tasks.TaskHandler;
 import com.sappenin.utils.json.JsonUtils;
-import lombok.Getter;
+import com.sappenin.utils.json.JsonUtilsClassTypeMapper;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import javax.servlet.http.HttpServletResponse;
 import java.util.logging.Logger;
 
 /**
- * Abstract implementation of {@link TaskScheduler} for assisting with the scheduling of tasks with the taskqueue
- * service in App Engine.
+ * Abstract implementation of {@link TaskHandler} for assisting with the handling of tasks using the TaskQueue service
+ * in Google AppEngine.
  *
  * @author David Fuelling
  */
-@Getter
-public abstract class AbstractTaskHandler<T> implements TaskScheduler<T>
+public abstract class AbstractTaskHandler<P> implements TaskHandler
 {
-	private static final String APPLICATION_JSON = "application/json";
-
 	private final JsonUtils jsonUtils;
+
+	private final JsonUtilsClassTypeMapper jsonUtilsClassTypeMapper;
 
 	/**
 	 * Required Args Constructor.
+	 *
+	 * @param jsonUtils                An instance of {@link JsonUtils} for deserializing JSON payloads from the
+	 *                                 TaskQueue.
+	 * @param jsonUtilsClassTypeMapper An instance of {@link JsonUtilsClassTypeMapper} for providing runtime Class-type
+	 *                                 information for deserialization via {@link JsonUtils}.
 	 */
-	public AbstractTaskHandler(final JsonUtils jsonUtils)
+	public AbstractTaskHandler(final JsonUtils jsonUtils, final JsonUtilsClassTypeMapper jsonUtilsClassTypeMapper)
 	{
 		Preconditions.checkNotNull(jsonUtils);
 		this.jsonUtils = jsonUtils;
-	}
 
-	@Override
-	public void schedule(T payload)
-	{
-		Preconditions.checkNotNull(payload);
-		this.getLogger().info("Scheduling Task (Namespace=\"" + NamespaceManager.get() + "\"): " + payload);
-
-		try
-		{
-			final Queue queue = QueueFactory.getQueue(getProcessingQueueName());
-
-			// Enqueue this task
-			TaskOptions taskOptions = this.buildTaskOptions(payload);
-
-			// Kick off a Task to handle callbacks
-			queue.add(taskOptions);
-		}
-		catch (Exception e)
-		{
-			throw new RuntimeException(e);
-		}
-
-		this.getLogger().info("Task Scheduled (Namespace=\"" + NamespaceManager.get() + "\"): " + payload);
+		Preconditions.checkNotNull(jsonUtilsClassTypeMapper);
+		this.jsonUtilsClassTypeMapper = jsonUtilsClassTypeMapper;
 	}
 
 	/**
-	 * Helper method to build a {@link TaskOptions} from a {@code payload} of type <T>.
+	 * Implemented by subclasses to actually do something with a payload of type <P>.
 	 *
-	 * @param payload An instance of type <T>.
+	 * @param payload An instance of type <P>.
+	 */
+	protected abstract void handleHelper(final P payload) throws Exception;
+
+	/**
+	 * Implemented by subclasses to actually do something with a payload of type <P>.  This method provides access to
+	 * the servlet request and response, but is generally not necessary (prefer {@link #handleHelper(Object)} instead.)
+	 *
+	 * @param payload             An instance of type <P>.
+	 * @param httpServletRequest  An instance of {@link HttpServletRequest}, provided for convenience.
+	 * @param httpServletResponse An instance of {@link HttpServletResponse}, provided for convenience.
+	 */
+	protected void handleHelper(final P payload, final HttpServletRequest httpServletRequest,
+			final HttpServletResponse httpServletResponse) throws Exception
+	{
+		Preconditions.checkNotNull(payload);
+		Preconditions.checkNotNull(httpServletRequest);
+		Preconditions.checkNotNull(httpServletResponse);
+
+		this.handleHelper(payload);
+	}
+
+	/**
+	 * Handles a particular task for the TaskQueue system on Google App Engine.
+	 */
+	@Override
+	public final void handle(final HttpServletRequest request, final HttpServletResponse response) throws Exception
+	{
+		final P typedPayload = this.jsonUtils.fromJson(request, this.jsonUtilsClassTypeMapper);
+		Preconditions.checkNotNull(typedPayload);
+
+		this.getLogger().entering(this.getClass().getName(), "handle", typedPayload);
+		this.handleHelper(typedPayload, request, response);
+		this.getLogger().exiting(this.getClass().getName(), "handle");
+	}
+
+	/**
+	 * Abstract method to return the logger of the implementing class.
 	 *
 	 * @return
 	 */
-	protected TaskOptions buildTaskOptions(final T payload) throws JsonProcessingException
-	{
-		// Enqueue this task
-		TaskOptions taskOptions = TaskOptions.Builder.withDefaults();
-
-		// Convert the Payload into JSON. We use JSON instead of a
-		// DeferredTask because JSON is less brittle when
-		// the payload class structure changes than a Serialized class.
-		final String jsonPayload = this.getJsonUtils().toJson(payload);
-		taskOptions = taskOptions.payload(jsonPayload);
-		taskOptions = taskOptions.url(getProcessingQueueUrlPath());
-		taskOptions = taskOptions.method(Method.POST);
-		taskOptions = taskOptions.header("Accept", APPLICATION_JSON);
-		taskOptions = taskOptions.header("Content-Type", APPLICATION_JSON);
-		//taskOptions = taskOptions.header("Host", this.getHost());
-
-		return taskOptions;
-	}
-
-	// /////////////////////
-	// Protected Helpers
-	// /////////////////////
-
 	protected abstract Logger getLogger();
 
 	/**
-	 * @return the name of the Queue that this payload should be scheduled on.
-	 */
-	protected abstract String getProcessingQueueName();
-
-	/**
-	 * @return the url path that this application will process taskqueues on. For example,
-	 * "/tasks/callbacks/processCallback".
-	 */
-	protected abstract String getProcessingQueueUrlPath();
-
-	/**
-	 * @return A {@link String} representing the host that a particular aggregate task should be scheduled onto.
-	 */
-	//protected abstract String getHost();
-
-	/**
-	 * Helper method to grab a Json Payload from the InputStream of an {@link HttpServletRequest}.  Not used in this
-	 * class but used by sub-classes.
-	 *
-	 * @param httpServletRequest
+	 * Protected Getter for access by implementing classes.
 	 *
 	 * @return
 	 */
-	protected String getJsonPayloadFromRequest(final HttpServletRequest httpServletRequest) throws IOException
+	protected JsonUtils getJsonUtils()
 	{
-		Preconditions.checkNotNull(httpServletRequest);
-		return this.getJsonPayloadFromRequest(httpServletRequest.getInputStream());
+		return this.jsonUtils;
 	}
 
-	/**
-	 * Helper method to grab a Json Payload from an InputStream.  This is generally used in concert with an {@link
-	 * HttpServletRequest}, but doesn't strictly need to be.   Not used in this class but used by sub-classes.
-	 *
-	 * @param inputStream
-	 *
-	 * @return
-	 */
-	protected String getJsonPayloadFromRequest(final InputStream inputStream) throws IOException
-	{
-		Preconditions.checkNotNull(inputStream);
-		try (final InputStream stream = inputStream)
-		{
-			String jsonPayload = CharStreams.toString(new InputStreamReader(stream, Charsets.UTF_8));
-			getLogger().exiting(this.getClass().getName(), "getJsonPayloadFromRequest", jsonPayload);
-			return jsonPayload;
-		}
-	}
 }
