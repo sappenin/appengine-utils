@@ -1,0 +1,198 @@
+<queue-entries>
+
+    <queue>
+        <name>default</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+    </queue>
+
+    <queue>
+        <name>usw-algolia-updated-idea-index</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+    </queue>
+
+    <queue>
+        <name>usj-synthetic-indexer</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+    </queue>
+
+
+    <!-- Customer Notifications Framework -->
+    <queue>
+        <name>mapreduce-workers</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+    </queue>
+
+    <queue>
+        <name>upswell-notification-message-processor</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+        <target>mapreduce-backend</target>
+    </queue>
+
+    <queue>
+        <name>upswell-aggregate-notification-message-processor</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+        <target>mapreduce-backend</target>
+    </queue>
+
+    <!-- UpSwell is not deleting counter shards at present, so this queue is not needed yet. When it is needed, enable the
+      DeleteCounterShardTaskHandler -->
+    <!-- <queue> <name>omw-delete-counter-shard-queue</name> <rate>20/s</rate> <bucket-size>40</bucket-size> <max-concurrent-requests>10</max-concurrent-requests>
+      <retry-parameters> Min 60 seconds <min-backoff-seconds>60</min-backoff-seconds> This is an 8hr Max Backoff <max-backoff-seconds>30720</max-backoff-seconds>
+      This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs); 15360s (4h);
+      30720s (8h); <max-doublings>8</max-doublings> </retry-parameters> </queue> -->
+
+    <!-- Creates an Activity on Follie -->
+    <queue>
+        <name>omw-follie-create-activity</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+    </queue>
+
+    <!-- Process the post-fanout FollieCallback from Follie for a given Activity/Follower combination -->
+    <queue>
+        <name>omw-follie-callback-handler</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+    </queue>
+
+    <!-- ############################### -->
+    <!-- Follie Internal Machinery Queue -->
+    <!-- ############################### -->
+
+    <queue>
+        <name>follie-fanout-create-stream-entry</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+    </queue>
+
+    <!-- Used to perform fanout in follie. Remove when follie is externalized to its own module -->
+    <queue>
+        <name>follie-fanout-queue</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+    </queue>
+
+    <!-- Processes Fanout Callbacks -->
+    <queue>
+        <name>follie-callback-queue</name>
+        <rate>20/s</rate>
+        <bucket-size>40</bucket-size>
+        <max-concurrent-requests>10</max-concurrent-requests>
+        <retry-parameters>
+            <!-- Min 60 seconds -->
+            <min-backoff-seconds>60</min-backoff-seconds>
+            <!-- This is an 8hr Max Backoff -->
+            <max-backoff-seconds>30720</max-backoff-seconds>
+            <!-- This will execute at 60s, 120s (2m), 240s (4m), 480s (8m), 960s (16m), 1920s (32m); 3840s (64m); 7680s (2hrs);
+              15360s (4h); 30720s (8h); -->
+            <max-doublings>8</max-doublings>
+        </retry-parameters>
+    </queue>
+
+</queue-entries>

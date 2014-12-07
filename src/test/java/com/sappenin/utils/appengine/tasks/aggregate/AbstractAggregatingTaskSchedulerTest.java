@@ -2,7 +2,8 @@ package com.sappenin.utils.appengine.tasks.aggregate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.appengine.api.taskqueue.TaskOptions;
-import com.sappenin.utils.appengine.tasks.base.AbstractTaskScheduler;
+import com.sappenin.utils.appengine.tasks.aggregate.AbstractAggregatingTaskScheduler;
+import com.sappenin.utils.appengine.tasks.aggregate.AggregatingTaskSchedulerPayload;
 import com.sappenin.utils.json.JsonUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
