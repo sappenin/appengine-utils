@@ -1,10 +1,9 @@
-package com.sappenin.utils.appengine.base;
+package com.sappenin.utils.appengine.data.dao.base;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.impl.translate.opt.joda.DateTimeZoneTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.joda.ReadableInstantTranslatorFactory;
-import com.sappenin.utils.appengine.data.dao.base.AbstractObjectifyStringDao;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -85,7 +84,7 @@ public class TestStringEntityTest extends AbstractObjectifyStringDaoTester<TestS
 		entityThatWillBeSaved.setTestValue("testValue2");
 	}
 
-	static final class TestStringEntityDao extends AbstractObjectifyStringDao<TestStringEntity>
+	public static final class TestStringEntityDao extends AbstractObjectifyStringDao<TestStringEntity>
 	{
 
 	}

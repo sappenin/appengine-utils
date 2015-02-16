@@ -1,19 +1,20 @@
-package com.sappenin.utils.appengine.base;
+package com.sappenin.utils.appengine.data.dao.base;
 
+import com.google.appengine.api.datastore.Cursor;
 import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.cache.AsyncCacheFilter;
+import com.googlecode.objectify.cmd.Query;
+import com.sappenin.utils.appengine.base.GaeTestHarnessInitializationAdapter;
 import com.sappenin.utils.appengine.data.dao.Dao;
 import com.sappenin.utils.appengine.data.dao.ObjectifyDao;
+import com.sappenin.utils.appengine.data.dao.base.TestLongEntityTest.TestLongEntityDao;
 import com.sappenin.utils.appengine.data.model.GaeTypedEntity;
 import com.sappenin.utils.appengine.data.model.base.AbstractEntity;
 import org.joda.time.DateTime;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.*;
@@ -28,12 +29,8 @@ import static org.junit.Assert.*;
 public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEntity<T>>
 		extends GaeTestHarnessInitializationAdapter
 {
-	@BeforeClass
-	public static void setUpClass()
-	{
-		// Initialize Objectify for testing purposes.
-		ObjectifyService.ofy();
-	}
+
+	private final AbstractObjectifyDao<T> impl = (AbstractObjectifyDao) this.getDao();
 
 	@Before
 	public void setUpAbstractDaoTesterInternal() throws Exception
@@ -45,13 +42,6 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	 * Implement this with custom test functionality.
 	 */
 	protected abstract void setUpAbstractDaoTester();
-
-	@After
-	public void tearDownAbstractDaoTestor() throws Exception
-	{
-		AsyncCacheFilter.complete();
-		ObjectifyService.reset();
-	}
 
 	// ///////////////////////////////////////////////////
 	// COMMON TEST HARNESS
@@ -180,6 +170,69 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	{
 		assertNotNull(this.getDao());
 	}
+
+	/////////////////////////////
+	// AbstractObjectifyDao Private Helpers
+	/////////////////////////////
+
+	// #AdjustLimit
+
+	@Test
+	public void TestAdjustLimit() throws Exception
+	{
+		final AbstractObjectifyDao<T> impl = (AbstractObjectifyDao) this.getDao();
+
+		assertThat(impl.adjustLimit(-1), is(10));
+		assertThat(impl.adjustLimit(-0), is(10));
+		assertThat(impl.adjustLimit(5), is(5));
+		assertThat(impl.adjustLimit(10), is(10));
+		assertThat(impl.adjustLimit(15), is(15));
+	}
+
+	// #MassageQuery
+
+	@Test(expected = NullPointerException.class)
+	public void TestMassageQuery_NullQuery() throws Exception
+	{
+		final Query<T> finalizedQuery = null;
+		impl.massageQuery(finalizedQuery, Cursor.fromWebSafeString(""), 10);
+	}
+
+	//	Other MassageQuery tests are in the String and Long DAO Tester
+
+	// #existsInDatastore
+
+	@Test(expected = NullPointerException.class)
+	public void TestExistsInDatastore_NullInput() throws Exception
+	{
+		// Need to peg this to type "TestLongEntity" in to test properly.
+		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
+		impl.existsInDatastore(null);
+	}
+
+	@Test
+	public void TestExistsInDatastore() throws Exception
+	{
+		// Need to peg this to type "TestLongEntity" in to test properly.
+		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
+
+		final Key<TestLongEntity> notFoundKey = Key.create(TestLongEntity.class, 2L);
+		final Key<TestLongEntity> foundKey = Key.create(TestLongEntity.class, 1L);
+		final TestLongEntity entity = new TestLongEntity(foundKey);
+		impl.save(entity);
+
+		assertThat(impl.existsInDatastore(foundKey), is(true));
+		assertThat(impl.existsInDatastore(notFoundKey), is(false));
+	}
+
+	// #existsInDatastoreConsistent
+	// See Long and String Dao tests
+
+	// #assembleResultWithCursor
+
+	// See AbstractObjectifyLongDaoTester and AbstractObjectifyStringDaoTester
+
+	// #determinePageIndices
 
 	// //////////////////////////////////////////////////////////
 	// ABSTRACT FUNCTIONS

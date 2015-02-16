@@ -79,12 +79,35 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	// ////////////////////////////
 
 	@Override
+	public boolean existsInDatastore(final Key<T> typedKey)
+	{
+		Preconditions.checkNotNull(typedKey);
+
+		// See "https://groups.google.com/forum/#!searchin/objectify-appengine/exist/objectify-appengine/zFI2YWP5DTI
+		// /BpwFNlVQo1UJ".  This methodolody will be faster than a get-by-key because the Datastore merely does an
+		// index-walk, and has minimal protobuf overhead.  However, this will be slightly costlier in the case where
+		// an entity exists (but equivalent when an entity doesn't exist).
+		return ObjectifyService.ofy().load().filterKey(typedKey).limit(1).count() == 1;
+	}
+
+	@Override
+	public boolean existsInDatastoreConsistent(final Key<T> typedKey)
+	{
+		Preconditions.checkNotNull(typedKey);
+
+		// See "https://groups.google.com/forum/#!searchin/objectify-appengine/exist/objectify-appengine/zFI2YWP5DTI
+		// /BpwFNlVQo1UJ".  This methodolody will be less expensive, and strongly-consistent than the
+		// existsInDatastore, but will be slower.
+		return ObjectifyService.ofy().load().key(typedKey).now() != null;
+	}
+
+	@Override
 	public Optional<T> findByTypedKey(final Key<T> typedKey)
 	{
 		Preconditions.checkNotNull(typedKey);
 		// #now will return null if the entity isn't found, which Optional can
 		// handle.
-		return Optional.<T>fromNullable(ObjectifyService.ofy().load().key(typedKey).now());
+		return Optional.fromNullable(ObjectifyService.ofy().load().key(typedKey).now());
 	}
 
 	@Override
@@ -106,8 +129,8 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	}
 
 	@Override
-	public ResultWithCursor<List<Key<T>>> loadKeysOnlyFromDatastoreWithCursor(final Query<T> query,
-			final Cursor offset,
+	public ResultWithCursor<List<Key<T>>> loadKeysOnlyFromDatastoreWithCursor(final Query<T> query, final Cursor
+			offset,
 			final int limit)
 	{
 		final int adjustedLimit = adjustLimit(limit);

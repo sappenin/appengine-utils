@@ -15,6 +15,9 @@ import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig
 import com.google.appengine.tools.development.testing.LocalXMPPServiceTestConfig;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cache.AsyncCacheFilter;
+import com.googlecode.objectify.impl.translate.opt.joda.DateTimeZoneTranslatorFactory;
+import com.googlecode.objectify.impl.translate.opt.joda.ReadableInstantTranslatorFactory;
+import com.googlecode.objectify.util.Closeable;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -39,6 +42,9 @@ public class GaeTestHarnessInitializationAdapter
 			.TaskCountDownLatch(
 			1);
 
+	// New Objectify 5.1 Way. See https://groups.google.com/forum/#!topic/objectify-appengine/O4FHC_i7EGk
+	protected Closeable session;
+
 	/**
 	 * Initialize the Appengine test harness for a particular JUnit test.
 	 */
@@ -46,13 +52,39 @@ public class GaeTestHarnessInitializationAdapter
 	public void setUpAppengine() throws Exception
 	{
 		this.setUpAppengineInternal(null, null);
+
+		helper.setUp();
+
+		// New Objectify 5.1 Way. See https://groups.google.com/forum/#!topic/objectify-appengine/O4FHC_i7EGk
+		ObjectifyService.factory().getTranslators().add(new DateTimeZoneTranslatorFactory());
+		ObjectifyService.factory().getTranslators().add(new ReadableInstantTranslatorFactory());
+		this.session = ObjectifyService.begin();
 	}
 
+	/**
+	 * Cleanup Objectify
+	 */
 	@After
-	public void tearDownAbstractSpringGAETests()
+	public void cleanupAppengine()
 	{
 		AsyncCacheFilter.complete();
-		ObjectifyService.reset();
+		latch.reset();
+
+		// New Objectify 5.1 Way. See https://groups.google.com/forum/#!topic/objectify-appengine/O4FHC_i7EGk
+		this.session.close();
+
+		helper.tearDown();
+	}
+
+	/**
+	 * Cleanup Appengine Test Services
+	 *
+	 * @return
+	 */
+	@After
+	public void tearDownAppengine() throws Exception
+	{
+
 	}
 
 	/**
@@ -80,21 +112,6 @@ public class GaeTestHarnessInitializationAdapter
 				new LocalMailServiceTestConfig(), new LocalMemcacheServiceTestConfig(),
 				new LocalRdbmsServiceTestConfig(), localTaskQueueConfig, new LocalURLFetchServiceTestConfig(),
 				new LocalUserServiceTestConfig(), new LocalXMPPServiceTestConfig(), hrdConfig);
-
-		helper.setUp();
-	}
-
-	/**
-	 * Provides access to the Helper.
-	 *
-	 * @return
-	 */
-	@After
-	public void tearDownAppengine() throws Exception
-	{
-		ObjectifyService.reset();
-		latch.reset();
-		helper.tearDown();
 	}
 
 	/**

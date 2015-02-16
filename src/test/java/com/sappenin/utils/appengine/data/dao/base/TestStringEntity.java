@@ -1,4 +1,4 @@
-package com.sappenin.utils.appengine.base;
+package com.sappenin.utils.appengine.data.dao.base;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
@@ -6,10 +6,13 @@ import com.sappenin.utils.appengine.data.model.base.AbstractObjectifyStringEntit
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Helper class to simulate an implementation of {@link AbstractObjectifyStringEntity}.
+ */
 @Entity
 @NoArgsConstructor
 @Data
-class TestStringEntity extends AbstractObjectifyStringEntity<TestStringEntity>
+public class TestStringEntity extends AbstractObjectifyStringEntity<TestStringEntity>
 {
 	private String testValue;
 

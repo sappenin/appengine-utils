@@ -54,7 +54,7 @@ public class ObjectifyEntityLockHelper implements Serializable
 	 */
 	public <L extends AbstractEntityStringLock> L reserveLockValue(final L lock) throws EntityLockCollision
 	{
-		Preconditions.checkNotNull(ObjectifyService.ofy().getTransaction() != null,
+		Preconditions.checkNotNull(ObjectifyService.ofy().getTransaction(),
 				"This function must be called inside an existing Objectify transaction.");
 		Preconditions.checkArgument(ObjectifyService.ofy().getTransaction().isActive(),
 				"This function must be called inside an existing Objectify transaction.");
@@ -87,7 +87,7 @@ public class ObjectifyEntityLockHelper implements Serializable
 	 */
 	public void removeLocksSafely(final AbstractEntityStringLock... locks)
 	{
-		Preconditions.checkNotNull(ObjectifyService.ofy().getTransaction() != null,
+		Preconditions.checkNotNull(ObjectifyService.ofy().getTransaction(),
 				"This function must be called inside an existing Objectify transaction.");
 		Preconditions.checkArgument(ObjectifyService.ofy().getTransaction().isActive(),
 				"This function must be called inside an existing Objectify transaction.");

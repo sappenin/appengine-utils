@@ -1,10 +1,9 @@
-package com.sappenin.utils.appengine.base;
+package com.sappenin.utils.appengine.data.dao.base;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.impl.translate.opt.joda.DateTimeZoneTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.joda.ReadableInstantTranslatorFactory;
-import com.sappenin.utils.appengine.data.dao.base.AbstractObjectifyLongDao;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -85,7 +84,10 @@ public class TestLongEntityTest extends AbstractObjectifyLongDaoTester<TestLongE
 		entityThatWillBeSaved.setTestValue("testValue2");
 	}
 
-	static final class TestLongEntityDao extends AbstractObjectifyLongDao<TestLongEntity>
+	/**
+	 * An extension of {@link AbstractObjectifyLongDao} for testing purposes.
+	 */
+	public static final class TestLongEntityDao extends AbstractObjectifyLongDao<TestLongEntity>
 	{
 
 	}

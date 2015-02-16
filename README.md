@@ -7,6 +7,8 @@ Various utilities for interacting with Google App Engine
 
 Change Log
 ----------
+**Version 1.1.0**
++ 
 
 **Version 1.0.4**
 + No Changes.

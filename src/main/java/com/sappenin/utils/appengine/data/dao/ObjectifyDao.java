@@ -68,4 +68,24 @@ public interface ObjectifyDao<T extends AbstractEntity> extends Dao<T>
 	 */
 	ResultWithCursor<List<Key<T>>> loadKeysOnlyFromDatastoreWithCursor(final Query<T> query, final Cursor offset,
 			final int limit);
+
+	/**
+	 * Determines if the entity indicated by {@code typedKey} exists in the datastore.  Note that this operation is not
+	 * strongly consistent.  If consistency is desired, then prefer {@link #existsInDatastoreConsistent}.
+	 *
+	 * @param typedKey
+	 *
+	 * @return
+	 */
+	public boolean existsInDatastore(final Key<T> typedKey);
+
+	/**
+	 * Determines if the entity indicated by {@code typedKey} exists in the datastore.  Note that this operation is
+	 * strongly consistent, but is slightly slower than {@link #existsInDatastore(Key)}.
+	 *
+	 * @param typedKey
+	 *
+	 * @return
+	 */
+	public boolean existsInDatastoreConsistent(final Key<T> typedKey);
 }
