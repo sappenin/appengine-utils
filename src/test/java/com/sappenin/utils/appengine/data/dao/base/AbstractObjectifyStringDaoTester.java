@@ -5,6 +5,8 @@ import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
+import com.googlecode.objectify.impl.translate.opt.joda.DateTimeZoneTranslatorFactory;
+import com.googlecode.objectify.impl.translate.opt.joda.ReadableInstantTranslatorFactory;
 import com.sappenin.utils.appengine.data.dao.ObjectifyStringDao;
 import com.sappenin.utils.appengine.data.dao.base.TestLongEntityTest.TestLongEntityDao;
 import com.sappenin.utils.appengine.data.dao.base.TestStringEntityTest.TestStringEntityDao;
@@ -12,6 +14,7 @@ import com.sappenin.utils.appengine.data.model.GaeTypedEntity;
 import com.sappenin.utils.appengine.data.model.ResultWithCursor;
 import com.sappenin.utils.appengine.data.model.base.AbstractObjectifyStringEntity;
 import org.hamcrest.CoreMatchers;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
@@ -31,6 +34,14 @@ import static org.hamcrest.core.Is.is;
 public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjectifyStringEntity<T> & GaeTypedEntity<T>>
 		extends AbstractDaoTesterGAE<T>
 {
+	@Before
+	public void beforeAbstractObjectifyLongDaoTester()
+	{
+		ObjectifyService.factory().getTranslators().add(new DateTimeZoneTranslatorFactory());
+		ObjectifyService.factory().getTranslators().add(new ReadableInstantTranslatorFactory());
+		ObjectifyService.factory().register(TestStringEntity.class);
+	}
+
 	/**
 	 * Returns the Dao for this AbstractObjectifyStringDao Testor.
 	 *

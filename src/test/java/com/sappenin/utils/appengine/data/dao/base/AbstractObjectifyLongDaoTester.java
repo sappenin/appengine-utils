@@ -5,12 +5,15 @@ import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
+import com.googlecode.objectify.impl.translate.opt.joda.DateTimeZoneTranslatorFactory;
+import com.googlecode.objectify.impl.translate.opt.joda.ReadableInstantTranslatorFactory;
 import com.sappenin.utils.appengine.data.dao.ObjectifyLongDao;
 import com.sappenin.utils.appengine.data.dao.base.TestLongEntityTest.TestLongEntityDao;
 import com.sappenin.utils.appengine.data.model.GaeTypedEntity;
 import com.sappenin.utils.appengine.data.model.ResultWithCursor;
 import com.sappenin.utils.appengine.data.model.base.AbstractObjectifyLongEntity;
 import org.hamcrest.core.Is;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
@@ -29,6 +32,15 @@ import static org.hamcrest.core.Is.is;
 public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectifyLongEntity<T> & GaeTypedEntity<T>>
 		extends AbstractDaoTesterGAE<T>
 {
+
+	@Before
+	public void beforeAbstractObjectifyLongDaoTester()
+	{
+		ObjectifyService.factory().getTranslators().add(new DateTimeZoneTranslatorFactory());
+		ObjectifyService.factory().getTranslators().add(new ReadableInstantTranslatorFactory());
+		ObjectifyService.factory().register(TestLongEntity.class);
+	}
+
 	/**
 	 * Returns the Dao for this AbstractObjectifyLongDao Testor.
 	 *

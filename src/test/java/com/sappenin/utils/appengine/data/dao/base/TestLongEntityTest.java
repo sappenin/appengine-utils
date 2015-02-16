@@ -1,9 +1,6 @@
 package com.sappenin.utils.appengine.data.dao.base;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.impl.translate.opt.joda.DateTimeZoneTranslatorFactory;
-import com.googlecode.objectify.impl.translate.opt.joda.ReadableInstantTranslatorFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -22,11 +19,6 @@ public class TestLongEntityTest extends AbstractObjectifyLongDaoTester<TestLongE
 	@Override
 	protected void setUpAbstractDaoTester()
 	{
-		ObjectifyService.factory().getTranslators().add(new DateTimeZoneTranslatorFactory());
-		ObjectifyService.factory().getTranslators().add(new ReadableInstantTranslatorFactory());
-
-		ObjectifyService.factory().register(TestLongEntity.class);
-
 		dao = new TestLongEntityDao();
 		nowForTest = DateTime.now(DateTimeZone.UTC);
 	}

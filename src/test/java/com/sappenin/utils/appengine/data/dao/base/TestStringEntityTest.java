@@ -22,11 +22,6 @@ public class TestStringEntityTest extends AbstractObjectifyStringDaoTester<TestS
 	@Override
 	protected void setUpAbstractDaoTester()
 	{
-		ObjectifyService.factory().getTranslators().add(new DateTimeZoneTranslatorFactory());
-		ObjectifyService.factory().getTranslators().add(new ReadableInstantTranslatorFactory());
-
-		ObjectifyService.factory().register(TestStringEntity.class);
-
 		dao = new TestStringEntityDao();
 		nowForTest = DateTime.now(DateTimeZone.UTC);
 	}
