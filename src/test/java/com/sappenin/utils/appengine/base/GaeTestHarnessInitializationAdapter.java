@@ -35,7 +35,7 @@ public class GaeTestHarnessInitializationAdapter
 	// NOTE: There is a bug with 1.6.x and below Appengine such that if this is
 	// set to 0, it disables HRD. So, we set it to 1 and hope that statistically
 	// this doesn't fail the tests (at least not very often).
-	public static float amountOfHRDFailureForEventualConsistency = 0.0f;
+	public static float amountOfHRDFailureForEventualConsistency = 0.1f;
 
 	// Unlike CountDownLatch, TaskCountDownlatch lets us reset.
 	protected final LocalTaskQueueTestConfig.TaskCountDownLatch latch = new LocalTaskQueueTestConfig

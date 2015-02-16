@@ -65,6 +65,7 @@ public class ObjectifyEntityLockHelperTest extends GaeTestHarnessInitializationA
 		}
 		catch (Exception e)
 		{
+			e.printStackTrace();
 			fail();
 		}
 	}
@@ -147,6 +148,7 @@ public class ObjectifyEntityLockHelperTest extends GaeTestHarnessInitializationA
 		catch (Exception e)
 		{
 			// No exception expected here.
+			e.printStackTrace();
 			fail();
 		}
 		return usernameLock;
