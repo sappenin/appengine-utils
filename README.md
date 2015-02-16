@@ -8,7 +8,10 @@ Various utilities for interacting with Google App Engine
 Change Log
 ----------
 **Version 1.1.0**
-+ 
++ Add new methods to AbstractObjectifyDao for entity existence testing.
++ Fix bug in ObjectifyEntityLockHelper Preconditions.
++ Update test harnesses for Objectify 5.1.
++ Improve unit test coverage.
 
 **Version 1.0.4**
 + No Changes.
