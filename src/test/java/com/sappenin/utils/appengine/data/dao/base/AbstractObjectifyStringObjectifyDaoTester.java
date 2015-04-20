@@ -2,6 +2,7 @@ package com.sappenin.utils.appengine.data.dao.base;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
@@ -14,6 +15,7 @@ import com.sappenin.utils.appengine.data.dao.base.TestStringEntityTest.TestStrin
 import com.sappenin.utils.appengine.data.model.GaeTypedEntity;
 import com.sappenin.utils.appengine.data.model.ResultWithCursor;
 import com.sappenin.utils.appengine.data.model.base.AbstractObjectifyStringEntity;
+import com.sappenin.utils.exceptions.data.DuplicateEntityException;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +34,8 @@ import static org.hamcrest.core.Is.is;
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyStringObjectifyDaoTester<T extends AbstractObjectifyStringEntity<T> & GaeTypedEntity<T>>
+public abstract class AbstractObjectifyStringObjectifyDaoTester<T extends AbstractObjectifyStringEntity<T> &
+		GaeTypedEntity<T>>
 		extends AbstractObjectifyDaoTester<T>
 {
 	@Before
@@ -51,29 +54,24 @@ public abstract class AbstractObjectifyStringObjectifyDaoTester<T extends Abstra
 	@Override
 	protected abstract ObjectifyStringDao<T> getDao();
 
-	/**
-	 * Tests what happens when a "dao#save"  is called on an entity with no id.  Expect an {@link
-	 * IllegalArgumentException} since String-based entities may not be saved without an Id present.
-	 */
-	@Test(expected = IllegalArgumentException.class)
 	@Override
-	public void TestNonIdempotentSave()
+	public T getExistingEntityFromDatastore()
 	{
-		final T entity = getEmptyTestEntityWithNoKey();
-		this.getDao().save(entity);
+		final T entity = this.getFullyPopulatedEntity();
+		entity.setId(UUID.randomUUID().toString());
+		this.getDao().create(entity);
+		return entity;
 	}
 
 	/**
-	 * Tests what happens when a "dao#save" is called on an entity with an id.  Expect no error since this is the
-	 * happy-path for save operations.
+	 * Tests what happens when a "dao#save" is called on an entity without an id.
 	 */
-	@Test
+	@Test(expected = NullPointerException.class)
 	@Override
-	public void TestIdempotentSave()
+	public void TestSaveWithoutId()
 	{
-		final T entity = this.getTestEntityForValidSave();
-		// Try to save the entity twice.
-		this.getDao().save(entity);
+		final T entity = getExistingEntityFromDatastore();
+		entity.setId(null);
 		this.getDao().save(entity);
 	}
 
@@ -93,61 +91,26 @@ public abstract class AbstractObjectifyStringObjectifyDaoTester<T extends Abstra
 	/**
 	 * Tests what happens when a "dao#create" is called on an entity with an id.
 	 */
-	@Test
+	@Test(expected = DuplicateEntityException.class)
 	@Override
 	public void TestIdempotentCreate()
 	{
-		final T entity = getEmptyTestEntityWithKey();
+		final T entity = this.getExistingEntityFromDatastore();
 		this.getDao().create(entity);
 	}
 
+	@Override
 	@Test
-	public void TestSaveAfterUpdate()
-	{
-		final T entity = this.getTestEntityForValidSave();
-		this.getDao().save(entity);
-		this.changeSomethingMinorOnSuppliedEntity(entity);
-		this.getDao().save(entity);
-
-		// Do Assertions
-		this.doCommonAssertions(entity);
-
-		// We use the 'entity' here instead of the updatedEntity because the
-		// entity will look different when returned from the datastore versus
-		// when it is just updated in Java.
-		this.assertThatLoadedEntityWasUpdatedProperly(entity);
-	}
-
-	/**
-	 * Tests a fully-created entity from the Datastore.
-	 *
-	 * @return
-	 */
-	@Test
-	public void TestSaveWithAllFieldsPopulated()
+	public void TestFullyPopulatedEntity()
 	{
 		final T entity = this.getFullyPopulatedEntity();
-		this.getDao().save(entity);
+		entity.setId(UUID.randomUUID().toString());
+		this.getDao().create(entity);
 
-		// Do Assertions
-		this.doCommonAssertions(entity);
-
-		this.doFullEntityAssertions(entity);
-	}
-
-	/**
-	 * Tests a fully-created entity from the Datastore.
-	 *
-	 * @return
-	 */
-	@Test
-	public void TestSaveWithNoFieldsPopulated()
-	{
-		final T entity = this.getEmptyTestEntityWithKey();
-		this.getDao().save(entity);
-
-		// Do Assertions
-		this.doCommonAssertions(entity);
+		final Optional<T> optLoadedEntity = this.getDao().findByTypedKey(entity.getTypedKey());
+		assertThat(optLoadedEntity.isPresent(), is(true));
+		final T loadedEntity = optLoadedEntity.get();
+		this.doFullEntityAssertions(loadedEntity);
 	}
 
 	/////////////////////////////
@@ -169,8 +132,7 @@ public abstract class AbstractObjectifyStringObjectifyDaoTester<T extends Abstra
 	@Test
 	public void TestExistsInDatastore()
 	{
-		final T entity = getEmptyTestEntityWithKey();
-		this.getDao().create(entity);
+		final T entity = this.getExistingEntityFromDatastore();
 		assertThat(this.getDao().existsInDatastore(entity.getTypedKey()), CoreMatchers.is(true));
 	}
 
@@ -257,7 +219,7 @@ public abstract class AbstractObjectifyStringObjectifyDaoTester<T extends Abstra
 		{
 			final Key<TestStringEntity> key = Key.create(TestStringEntity.class, UUID.randomUUID().toString());
 			final TestStringEntity testStringEntity = new TestStringEntity(key);
-			impl.save(testStringEntity);
+			impl.create(testStringEntity);
 		}
 
 		final Query<TestStringEntity> finalizedQuery = ObjectifyService.ofy().load().type(TestStringEntity.class);
@@ -334,7 +296,7 @@ public abstract class AbstractObjectifyStringObjectifyDaoTester<T extends Abstra
 		final Key<TestStringEntity> notFoundKey = Key.create(TestStringEntity.class, 2L + "");
 		final Key<TestStringEntity> foundKey = Key.create(TestStringEntity.class, 1L + "");
 		final TestStringEntity entity = new TestStringEntity(foundKey);
-		impl.save(entity);
+		impl.create(entity);
 
 		assertThat(impl.existsInDatastoreConsistent(foundKey), is(true));
 		assertThat(impl.existsInDatastoreConsistent(notFoundKey), is(false));
@@ -348,43 +310,8 @@ public abstract class AbstractObjectifyStringObjectifyDaoTester<T extends Abstra
 		{
 			final Key<TestStringEntity> key = Key.create(TestStringEntity.class, i + 1 + "");
 			final TestStringEntity testStringEntity = new TestStringEntity(key);
-			impl.save(testStringEntity);
+			impl.create(testStringEntity);
 		}
 	}
-
-	/////////////////////////////
-	// Helper Methods
-	/////////////////////////////
-
-	/**
-	 * Helper method to allow sub-classes to provide a valid entity for saving.
-	 *
-	 * @return
-	 */
-	protected T getTestEntityForValidSave()
-	{
-		return this.getEmptyTestEntityWithKey();
-	}
-
-	/**
-	 * Helper method to allow sub-classes to provide a valid entity for saving.
-	 *
-	 * @return
-	 */
-	protected T getTestEntityForValidCreate()
-	{
-		return this.getEmptyTestEntityWithKey();
-	}
-
-	//
-	//	/**
-	//	 * Tests what happens when a #save method is called on a DAO with no id.
-	//	 */
-	//	@Test(expected = IllegalArgumentException.class)
-	//	public void abstractObjectifyStringDaoTestor_TestNonIdempotentSave() 
-	//	{
-	//		final T entity = getEmptyTestEntityWithNoKey();
-	//		this.getDao().save(entity);
-	//	}
 
 }

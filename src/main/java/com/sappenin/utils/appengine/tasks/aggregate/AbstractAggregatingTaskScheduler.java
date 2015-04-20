@@ -17,7 +17,9 @@ package com.sappenin.utils.appengine.tasks.aggregate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.appengine.api.taskqueue.TaskAlreadyExistsException;
+import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.common.base.Optional;
 import com.sappenin.utils.appengine.tasks.TaskScheduler;
 import com.sappenin.utils.appengine.tasks.base.AbstractTaskScheduler;
 import com.sappenin.utils.json.JsonUtils;
@@ -47,9 +49,10 @@ public abstract class AbstractAggregatingTaskScheduler<T extends AggregatingTask
 	}
 
 	@Override
-	protected TaskOptions buildTaskOptions(final T aggregatingTaskPayload) throws JsonProcessingException
+	protected TaskOptions buildTaskOptions(final T aggregatingTaskPayload, final Optional<String> optTaskName)
+			throws JsonProcessingException
 	{
-		TaskOptions taskOptions = super.buildTaskOptions(aggregatingTaskPayload);
+		TaskOptions taskOptions = super.buildTaskOptions(aggregatingTaskPayload, optTaskName);
 
 		DateTime nextRunDateTime = aggregatingTaskPayload.getEtaScheduledDateTime();
 		taskOptions.etaMillis(nextRunDateTime.getMillis());
@@ -61,7 +64,7 @@ public abstract class AbstractAggregatingTaskScheduler<T extends AggregatingTask
 	}
 
 	@Override
-	public void schedule(final T payload)
+	public TaskHandle schedule(final T payload)
 	{
 		try
 		{
@@ -94,6 +97,7 @@ public abstract class AbstractAggregatingTaskScheduler<T extends AggregatingTask
 				throw re;
 			}
 		}
+		return null;
 	}
 
 	/**

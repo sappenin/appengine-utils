@@ -15,6 +15,7 @@
  */
 package com.sappenin.utils.appengine.tasks.base;
 
+import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.common.base.Preconditions;
 import com.sappenin.utils.appengine.tasks.TaskHandler;
 import com.sappenin.utils.appengine.tasks.TaskScheduler;
@@ -132,10 +133,17 @@ public abstract class AbstractTaskScheduleHandler<P> implements TaskHandler, Tas
 	//////////////////////////////
 
 	@Override
-	public void schedule(P payload)
+	public TaskHandle schedule(P payload)
 	{
 		// Delegate to the Abstract pseudo super-class.
-		this.abstractTaskScheduler.schedule(payload);
+		return this.abstractTaskScheduler.schedule(payload);
+	}
+
+	@Override
+	public TaskHandle schedule(P payload, final String taskName)
+	{
+		// Delegate to the Abstract pseudo super-class.
+		return this.abstractTaskScheduler.schedule(payload, taskName);
 	}
 
 	// /////////////////////

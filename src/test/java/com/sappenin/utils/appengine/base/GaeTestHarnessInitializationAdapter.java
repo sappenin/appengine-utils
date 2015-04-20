@@ -77,17 +77,6 @@ public class GaeTestHarnessInitializationAdapter
 	}
 
 	/**
-	 * Cleanup Appengine Test Services
-	 *
-	 * @return
-	 */
-	@After
-	public void tearDownAppengine() throws Exception
-	{
-
-	}
-
-	/**
 	 * Initialize the Appengine test harness for a particular JUnit test.
 	 */
 	protected void setUpAppengineInternal(final String queueXMLPath,

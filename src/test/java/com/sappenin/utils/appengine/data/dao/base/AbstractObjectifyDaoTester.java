@@ -3,17 +3,12 @@ package com.sappenin.utils.appengine.data.dao.base;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
 import com.sappenin.utils.appengine.base.GaeTestHarnessInitializationAdapter;
 import com.sappenin.utils.appengine.data.dao.Dao;
 import com.sappenin.utils.appengine.data.dao.ObjectifyDao;
-import com.sappenin.utils.appengine.data.dao.base.TestLongEntityTest.TestLongEntityDao;
-import com.sappenin.utils.appengine.data.model.GaeTypedEntity;
-import com.sappenin.utils.appengine.data.model.base.AbstractEntity;
 import com.sappenin.utils.appengine.data.model.base.AbstractObjectifyEntity;
 import org.joda.time.DateTime;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,29 +24,15 @@ import static org.junit.Assert.*;
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyDaoTester<T extends AbstractEntity & GaeTypedEntity<T>>
+public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEntity>
 		extends GaeTestHarnessInitializationAdapter
 {
-	private final AbstractDao<T> impl = (AbstractObjectifyDao) this.getDao();
+	private final AbstractObjectifyDao<T> impl = (AbstractObjectifyDao) this.getDao();
 
 	@Before
 	public void setUpAbstractDaoTesterInternal()
 	{
 		this.setUpAbstractDaoTester();
-	}
-
-	@After
-	public void removeSavedEntity()
-	{
-		try
-		{
-			final T entity = getEmptyTestEntityWithKey();
-			ObjectifyService.ofy().delete().key(entity.getTypedKey()).now();
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
 	}
 
 	/**
@@ -71,80 +52,28 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractEntity & GaeT
 	}
 
 	/**
-	 * Tests a fully-created entity from the Datastore.
-	 *
-	 * @return
+	 * Tests what happens when a "dao#save" is called on an entity with an id, but the entity doesn't exist in the
+	 * datastore.
 	 */
-	@Test
-	public void TestSaveWithNoFieldsPopulated()
+	@Test(expected = IllegalArgumentException.class)
+	public void TestSaveWithId()
 	{
-		final T entity = this.getTestEntityForValidSave();
+		final T entity = getEmptyTestEntityWithNoKey();
 		this.getDao().save(entity);
-
-		// Do Assertions
-		this.doCommonAssertions(entity);
 	}
 
-	/**
-	 * Tests what happens when a "dao#save"  is called on an entity with no id.
-	 */
 	@Test
-	public abstract void TestNonIdempotentSave();
-
-	/**
-	 * Tests what happens when a "dao#save"  is called on an entity with an id.
-	 */
-	@Test
-	public abstract void TestIdempotentSave();
-
-	/**
-	 * Tests what happens when the "dao#create"  is called on an entity with no id.
-	 */
-	@Test
-	public abstract void TestNonIdempotentCreate();
-
-	/**
-	 * Tests what happens when a "dao#create"  is called on an entity with an id.
-	 */
-	@Test
-	public abstract void TestIdempotentCreate();
-
-	/**
-	 * Helper method to allow sub-classes to provide a valid entity for saving.
-	 *
-	 * @return
-	 */
-	protected abstract T getTestEntityForValidSave();
-
-	/**
-	 * Helper method to allow sub-classes to provide a valid entity for saving.
-	 *
-	 * @return
-	 */
-	protected abstract T getTestEntityForValidCreate();
-
-	/**
-	 * Tests a fully-created entity from the Datastore.
-	 *
-	 * @return
-	 */
-	@Test
-	public void TestSaveWithAllFieldsPopulated()
+	public void TestIdempotentSave()
 	{
-		final T entity = this.getFullyPopulatedEntity();
-		this.getDao().save(entity);
-
-		// Do Assertions
-		this.doCommonAssertions(entity);
-
-		this.doFullEntityAssertions(entity);
+		final T existingEntity = this.getExistingEntityFromDatastore();
+		this.getDao().save(existingEntity);
+		this.getDao().save(existingEntity);
 	}
 
 	@Test
 	public void TestSaveAfterUpdate()
 	{
-		final T entity = this.getFullyPopulatedEntity();
-		this.getDao().save(entity);
+		final T entity = this.getExistingEntityFromDatastore();
 		this.changeSomethingMinorOnSuppliedEntity(entity);
 		this.getDao().save(entity);
 
@@ -158,14 +87,36 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractEntity & GaeT
 	}
 
 	/**
+	 * Tests saving a fully-created entity from the Datastore.
+	 *
+	 * @return
+	 */
+	@Test
+	public void TestSaveWithNoFieldsPopulated()
+	{
+		final T emptyTestEntityWithNoKey = this.getExistingEntityFromDatastore();
+		this.getDao().save(emptyTestEntityWithNoKey);
+	}
+
+	/**
+	 * Tests saving a fully-created entity from the Datastore.
+	 *
+	 * @return
+	 */
+	@Test
+	public void TestSaveWithAllFieldsPopulated()
+	{
+		final T fullyPopulatedEntity = this.getExistingEntityFromDatastore();
+		this.getDao().save(fullyPopulatedEntity);
+	}
+
+	/**
 	 * Ensure that the Key of the Entity retrieved from the Datastore matches the Key of the Entity that was put there.
 	 */
 	@Test
 	public void TestFindByTypedPK()
 	{
-		final T entity = getTestEntityForValidSave();
-		this.getDao().save(entity);
-
+		final T entity = this.getExistingEntityFromDatastore();
 		final ObjectifyDao<T> ofyDao = (ObjectifyDao<T>) this.getDao();
 
 		final Key<T> typedKey = entity.getTypedKey();
@@ -178,7 +129,6 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractEntity & GaeT
 		assertEquals(entity.getKey(), entityLoadedFromDataStore.getKey());
 		assertEquals(entity.getTypedKey(), entityLoadedFromDataStore.getTypedKey());
 		assertEquals(entity, entityLoadedFromDataStore);
-
 	}
 
 	@Test
@@ -186,6 +136,30 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractEntity & GaeT
 	{
 		assertNotNull(this.getDao());
 	}
+
+	/**
+	 * Tests what happens when a "dao#save" is called multiple times on an entity with an id.
+	 */
+	@Test
+	public abstract void TestSaveWithoutId();
+
+	/**
+	 * Tests what happens when the "dao#create"  is called on an entity with no id.
+	 */
+	@Test
+	public abstract void TestNonIdempotentCreate();
+
+	/**
+	 * Tests what happens when a "dao#create" is called on an entity with an id.
+	 */
+	@Test
+	public abstract void TestIdempotentCreate();
+
+	/**
+	 * Save and load a fully populated entity, and assert that the loaded values match the inputs.
+	 */
+	@Test
+	public abstract void TestFullyPopulatedEntity();
 
 	/////////////////////////////
 	// AbstractObjectifyDao Private Helpers
@@ -214,40 +188,6 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractEntity & GaeT
 		impl.massageQuery(finalizedQuery, Cursor.fromWebSafeString(""), 10);
 	}
 
-	// #existsInDatastore
-
-	@Test(expected = NullPointerException.class)
-	public void TestExistsInDatastore_NullInput()
-	{
-		// Need to peg this to type "TestLongEntity" in to test properly.
-		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
-		impl.existsInDatastore(null);
-	}
-
-	@Test
-	public void TestExistsInDatastore()
-	{
-		// Need to peg this to type "TestLongEntity" in to test properly.
-		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
-
-		final Key<TestLongEntity> notFoundKey = Key.create(TestLongEntity.class, 2L);
-		final Key<TestLongEntity> foundKey = Key.create(TestLongEntity.class, 1L);
-		final TestLongEntity entity = new TestLongEntity(foundKey);
-		impl.save(entity);
-
-		assertThat(impl.existsInDatastore(foundKey), is(true));
-		assertThat(impl.existsInDatastore(notFoundKey), is(false));
-	}
-
-	// #existsInDatastoreConsistent
-	// See Long and String Dao tests
-
-	// #assembleResultWithCursor
-
-	// See AbstractObjectifyLongDaoTester and AbstractObjectifyStringDaoTester
-
-	// #determinePageIndices
-
 	// //////////////////////////////////////////////////////////
 	// ABSTRACT FUNCTIONS
 	// //////////////////////////////////////////////////////////
@@ -267,18 +207,20 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractEntity & GaeT
 	protected abstract T getEmptyTestEntityWithNoKey();
 
 	/**
-	 * Get an empty Entity with a Key.
-	 *
-	 * @return
-	 */
-	protected abstract T getEmptyTestEntityWithKey();
-
-	/**
-	 * Returns a Test entity that has all fields populated, including its Key.
+	 * Returns a Test entity that has all fields populated, except for the key.  The key will be created by the
+	 * Datastore or manually via tests.
 	 *
 	 * @return
 	 */
 	protected abstract T getFullyPopulatedEntity();
+
+	/**
+	 * Creates an entity in the Datastore, and returns it.  This is used by methods that require an existing entity to
+	 * already exist in the datastore.
+	 *
+	 * @return
+	 */
+	public abstract T getExistingEntityFromDatastore();
 
 	/**
 	 * Makes one or more changes (typically minor) to an entity in order to support the update() test.
@@ -341,5 +283,5 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractEntity & GaeT
 		assertThat(entity.getKey(), is(notNullValue()));
 		assertThat(entity.getId(), is(notNullValue()));
 	}
-
 }
+

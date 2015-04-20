@@ -2,6 +2,7 @@ package com.sappenin.utils.appengine.tasks.aggregate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.common.base.Optional;
 import com.sappenin.utils.json.JsonUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -83,7 +84,7 @@ public class AbstractAggregatingTaskSchedulerTest
 	{
 		final DummyPayloadWithName dummyPayloadWithName = new DummyPayloadWithName("dummyPropertyTest");
 
-		TaskOptions actual = impl.buildTaskOptions(dummyPayloadWithName);
+		TaskOptions actual = impl.buildTaskOptions(dummyPayloadWithName, Optional.<String>absent());
 
 		assertThat(actual.getEtaMillis(), is(notNullValue()));
 		assertThat(actual.getPayload(), is(notNullValue()));
