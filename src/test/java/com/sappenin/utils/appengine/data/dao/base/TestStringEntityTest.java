@@ -1,9 +1,5 @@
 package com.sappenin.utils.appengine.data.dao.base;
 
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.impl.translate.opt.joda.DateTimeZoneTranslatorFactory;
-import com.googlecode.objectify.impl.translate.opt.joda.ReadableInstantTranslatorFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -13,7 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * Test classes to validate abstract testers.
  */
-public class TestStringEntityTest extends AbstractObjectifyStringDaoTester<TestStringEntity>
+public class TestStringEntityTest extends AbstractObjectifyStringObjectifyDaoTester<TestStringEntity>
 {
 	private TestStringEntityDao dao;
 
@@ -33,22 +29,15 @@ public class TestStringEntityTest extends AbstractObjectifyStringDaoTester<TestS
 	}
 
 	@Override
-	protected TestStringEntity getEmptyTestEntityWithNoKey() throws Exception
+	protected TestStringEntity getEmptyTestEntityWithNoKey()
 	{
 		return new TestStringEntity();
 	}
 
 	@Override
-	protected TestStringEntity getEmptyTestEntityWithKey() throws Exception
+	protected TestStringEntity getFullyPopulatedEntity()
 	{
-		Key<TestStringEntity> key = Key.create(TestStringEntity.class, "testKey");
-		return new TestStringEntity(key);
-	}
-
-	@Override
-	protected TestStringEntity getFullyPopulatedEntity() throws Exception
-	{
-		TestStringEntity entity = this.getEmptyTestEntityWithKey();
+		TestStringEntity entity = this.getEmptyTestEntityWithNoKey();
 
 		entity.setCreationDateTime(nowForTest);
 

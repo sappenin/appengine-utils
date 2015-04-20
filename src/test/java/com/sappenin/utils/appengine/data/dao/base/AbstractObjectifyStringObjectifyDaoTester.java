@@ -7,6 +7,7 @@ import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.impl.translate.opt.joda.DateTimeZoneTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.joda.ReadableInstantTranslatorFactory;
+import com.sappenin.utils.appengine.data.dao.ObjectifyLongDao;
 import com.sappenin.utils.appengine.data.dao.ObjectifyStringDao;
 import com.sappenin.utils.appengine.data.dao.base.TestLongEntityTest.TestLongEntityDao;
 import com.sappenin.utils.appengine.data.dao.base.TestStringEntityTest.TestStringEntityDao;
@@ -31,8 +32,8 @@ import static org.hamcrest.core.Is.is;
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjectifyStringEntity<T> & GaeTypedEntity<T>>
-		extends AbstractDaoTesterGAE<T>
+public abstract class AbstractObjectifyStringObjectifyDaoTester<T extends AbstractObjectifyStringEntity<T> & GaeTypedEntity<T>>
+		extends AbstractObjectifyDaoTester<T>
 {
 	@Before
 	public void beforeAbstractObjectifyLongDaoTester()
@@ -51,47 +52,102 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	protected abstract ObjectifyStringDao<T> getDao();
 
 	/**
-	 * Tests what happens when a "dao#save"  is called on an entity with no id.
+	 * Tests what happens when a "dao#save"  is called on an entity with no id.  Expect an {@link
+	 * IllegalArgumentException} since String-based entities may not be saved without an Id present.
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	@Override
-	public void TestNonIdempotentSave() throws Exception
+	public void TestNonIdempotentSave()
 	{
 		final T entity = getEmptyTestEntityWithNoKey();
 		this.getDao().save(entity);
 	}
 
 	/**
-	 * Tests what happens when a "dao#save"  is called on an entity with an id.
+	 * Tests what happens when a "dao#save" is called on an entity with an id.  Expect no error since this is the
+	 * happy-path for save operations.
 	 */
 	@Test
 	@Override
-	public void TestIdempotentSave() throws Exception
+	public void TestIdempotentSave()
 	{
-		final T entity = getEmptyTestEntityWithKey();
+		final T entity = this.getTestEntityForValidSave();
+		// Try to save the entity twice.
+		this.getDao().save(entity);
 		this.getDao().save(entity);
 	}
 
 	/**
-	 * Tests what happens when the "dao#create"  is called on an entity with no id.
+	 * Tests what happens when the {@link ObjectifyStringDao#create} or {@link ObjectifyLongDao#create} is called on an
+	 * entity with no id.   Expect an {@link IllegalArgumentException} since String-based entities may not be created
+	 * without an Id present, since the DAO has no good way to do such a thing.
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	@Override
-	public void TestNonIdempotentCreate() throws Exception
+	public void TestNonIdempotentCreate()
 	{
 		final T entity = getEmptyTestEntityWithNoKey();
 		this.getDao().create(entity);
 	}
 
 	/**
-	 * Tests what happens when a "dao#create"  is called on an entity with an id.
+	 * Tests what happens when a "dao#create" is called on an entity with an id.
 	 */
 	@Test
 	@Override
-	public void TestIdempotentCreate() throws Exception
+	public void TestIdempotentCreate()
 	{
 		final T entity = getEmptyTestEntityWithKey();
 		this.getDao().create(entity);
+	}
+
+	@Test
+	public void TestSaveAfterUpdate()
+	{
+		final T entity = this.getTestEntityForValidSave();
+		this.getDao().save(entity);
+		this.changeSomethingMinorOnSuppliedEntity(entity);
+		this.getDao().save(entity);
+
+		// Do Assertions
+		this.doCommonAssertions(entity);
+
+		// We use the 'entity' here instead of the updatedEntity because the
+		// entity will look different when returned from the datastore versus
+		// when it is just updated in Java.
+		this.assertThatLoadedEntityWasUpdatedProperly(entity);
+	}
+
+	/**
+	 * Tests a fully-created entity from the Datastore.
+	 *
+	 * @return
+	 */
+	@Test
+	public void TestSaveWithAllFieldsPopulated()
+	{
+		final T entity = this.getFullyPopulatedEntity();
+		this.getDao().save(entity);
+
+		// Do Assertions
+		this.doCommonAssertions(entity);
+
+		this.doFullEntityAssertions(entity);
+	}
+
+	/**
+	 * Tests a fully-created entity from the Datastore.
+	 *
+	 * @return
+	 */
+	@Test
+	public void TestSaveWithNoFieldsPopulated()
+	{
+		final T entity = this.getEmptyTestEntityWithKey();
+		this.getDao().save(entity);
+
+		// Do Assertions
+		this.doCommonAssertions(entity);
 	}
 
 	/////////////////////////////
@@ -102,7 +158,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	 * Tests what happens when a "dao#create"  is called on an entity with an id.
 	 */
 	@Test(expected = NullPointerException.class)
-	public void TestExistsInDatastore_NullInput() throws Exception
+	public void TestExistsInDatastore_NullInput()
 	{
 		this.getDao().existsInDatastore(null);
 	}
@@ -111,7 +167,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	 * Tests what happens when a "dao#create"  is called on an entity with an id.
 	 */
 	@Test
-	public void TestExistsInDatastore() throws Exception
+	public void TestExistsInDatastore()
 	{
 		final T entity = getEmptyTestEntityWithKey();
 		this.getDao().create(entity);
@@ -123,7 +179,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	/////////////////////////////
 
 	@Test
-	public void TestLoadFromDatastoreWithCursor() throws Exception
+	public void TestLoadFromDatastoreWithCursor()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestStringEntity> impl = new TestStringEntityDao();
@@ -154,7 +210,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	/////////////////////////////
 
 	@Test
-	public void TestLoadKeysFromDatastoreWithCursor() throws Exception
+	public void TestLoadKeysFromDatastoreWithCursor()
 	{
 		// Need to peg this to type "TestStringEntity" in to test properly.
 		final AbstractObjectifyDao<TestStringEntity> impl = new TestStringEntityDao();
@@ -191,7 +247,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	 * asking for 9.
 	 */
 	@Test
-	public void TestMassageQuery_String_NullCursor() throws Exception
+	public void TestMassageQuery_String_NullCursor()
 	{
 		// Need to peg this to type "TestStringEntity" in to test properly.
 		final AbstractObjectifyDao<TestStringEntity> impl = new TestStringEntityDao();
@@ -212,7 +268,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	}
 
 	@Test
-	public void TestMassageQuery_0() throws Exception
+	public void TestMassageQuery_0()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestStringEntity> impl = new TestStringEntityDao();
@@ -230,7 +286,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	 * asking for 9.
 	 */
 	@Test
-	public void TestAssembleResultWithCursor() throws Exception
+	public void TestAssembleResultWithCursor()
 	{
 		// Need to peg this to type "TestStringEntity" in to test properly.
 		final AbstractObjectifyDao<TestStringEntity> impl = new TestStringEntityDao();
@@ -262,7 +318,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	/////////////////////////////
 
 	@Test(expected = NullPointerException.class)
-	public void TestExistsInDatastoreConsistent_NullInput() throws Exception
+	public void TestExistsInDatastoreConsistent_NullInput()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
@@ -270,7 +326,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	}
 
 	@Test
-	public void TestExistsInDatastoreConsistent() throws Exception
+	public void TestExistsInDatastoreConsistent()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestStringEntity> impl = new TestStringEntityDao();
@@ -305,7 +361,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	 *
 	 * @return
 	 */
-	protected T getEmptyTestEntityForValidSave() throws Exception
+	protected T getTestEntityForValidSave()
 	{
 		return this.getEmptyTestEntityWithKey();
 	}
@@ -315,7 +371,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	 *
 	 * @return
 	 */
-	protected T getEmptyTestEntityForValidCreate() throws Exception
+	protected T getTestEntityForValidCreate()
 	{
 		return this.getEmptyTestEntityWithKey();
 	}
@@ -325,7 +381,7 @@ public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjecti
 	//	 * Tests what happens when a #save method is called on a DAO with no id.
 	//	 */
 	//	@Test(expected = IllegalArgumentException.class)
-	//	public void abstractObjectifyStringDaoTestor_TestNonIdempotentSave() throws Exception
+	//	public void abstractObjectifyStringDaoTestor_TestNonIdempotentSave() 
 	//	{
 	//		final T entity = getEmptyTestEntityWithNoKey();
 	//		this.getDao().save(entity);

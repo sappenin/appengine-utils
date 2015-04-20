@@ -3,6 +3,7 @@ package com.sappenin.utils.appengine.data.dao.base;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
 import com.sappenin.utils.appengine.base.GaeTestHarnessInitializationAdapter;
 import com.sappenin.utils.appengine.data.dao.Dao;
@@ -10,7 +11,9 @@ import com.sappenin.utils.appengine.data.dao.ObjectifyDao;
 import com.sappenin.utils.appengine.data.dao.base.TestLongEntityTest.TestLongEntityDao;
 import com.sappenin.utils.appengine.data.model.GaeTypedEntity;
 import com.sappenin.utils.appengine.data.model.base.AbstractEntity;
+import com.sappenin.utils.appengine.data.model.base.AbstractObjectifyEntity;
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,16 +29,29 @@ import static org.junit.Assert.*;
  *
  * @author David Fuelling
  */
-public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEntity<T>>
+public abstract class AbstractObjectifyDaoTester<T extends AbstractEntity & GaeTypedEntity<T>>
 		extends GaeTestHarnessInitializationAdapter
 {
-
-	private final AbstractObjectifyDao<T> impl = (AbstractObjectifyDao) this.getDao();
+	private final AbstractDao<T> impl = (AbstractObjectifyDao) this.getDao();
 
 	@Before
-	public void setUpAbstractDaoTesterInternal() throws Exception
+	public void setUpAbstractDaoTesterInternal()
 	{
 		this.setUpAbstractDaoTester();
+	}
+
+	@After
+	public void removeSavedEntity()
+	{
+		try
+		{
+			final T entity = getEmptyTestEntityWithKey();
+			ObjectifyService.ofy().delete().key(entity.getTypedKey()).now();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -60,9 +76,9 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	 * @return
 	 */
 	@Test
-	public void TestSaveWithNoFieldsPopulated() throws Exception
+	public void TestSaveWithNoFieldsPopulated()
 	{
-		final T entity = this.getEmptyTestEntityForValidSave();
+		final T entity = this.getTestEntityForValidSave();
 		this.getDao().save(entity);
 
 		// Do Assertions
@@ -73,39 +89,39 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	 * Tests what happens when a "dao#save"  is called on an entity with no id.
 	 */
 	@Test
-	public abstract void TestNonIdempotentSave() throws Exception;
+	public abstract void TestNonIdempotentSave();
 
 	/**
 	 * Tests what happens when a "dao#save"  is called on an entity with an id.
 	 */
 	@Test
-	public abstract void TestIdempotentSave() throws Exception;
+	public abstract void TestIdempotentSave();
 
 	/**
 	 * Tests what happens when the "dao#create"  is called on an entity with no id.
 	 */
 	@Test
-	public abstract void TestNonIdempotentCreate() throws Exception;
+	public abstract void TestNonIdempotentCreate();
 
 	/**
 	 * Tests what happens when a "dao#create"  is called on an entity with an id.
 	 */
 	@Test
-	public abstract void TestIdempotentCreate() throws Exception;
+	public abstract void TestIdempotentCreate();
 
 	/**
 	 * Helper method to allow sub-classes to provide a valid entity for saving.
 	 *
 	 * @return
 	 */
-	protected abstract T getEmptyTestEntityForValidSave() throws Exception;
+	protected abstract T getTestEntityForValidSave();
 
 	/**
 	 * Helper method to allow sub-classes to provide a valid entity for saving.
 	 *
 	 * @return
 	 */
-	protected abstract T getEmptyTestEntityForValidCreate() throws Exception;
+	protected abstract T getTestEntityForValidCreate();
 
 	/**
 	 * Tests a fully-created entity from the Datastore.
@@ -113,7 +129,7 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	 * @return
 	 */
 	@Test
-	public void TestSaveWithAllFieldsPopulated() throws Exception
+	public void TestSaveWithAllFieldsPopulated()
 	{
 		final T entity = this.getFullyPopulatedEntity();
 		this.getDao().save(entity);
@@ -125,7 +141,7 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	}
 
 	@Test
-	public void TestSaveAfterUpdate() throws Exception
+	public void TestSaveAfterUpdate()
 	{
 		final T entity = this.getFullyPopulatedEntity();
 		this.getDao().save(entity);
@@ -145,9 +161,9 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	 * Ensure that the Key of the Entity retrieved from the Datastore matches the Key of the Entity that was put there.
 	 */
 	@Test
-	public void TestFindByTypedPK() throws Exception
+	public void TestFindByTypedPK()
 	{
-		final T entity = getEmptyTestEntityForValidSave();
+		final T entity = getTestEntityForValidSave();
 		this.getDao().save(entity);
 
 		final ObjectifyDao<T> ofyDao = (ObjectifyDao<T>) this.getDao();
@@ -166,7 +182,7 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	}
 
 	@Test
-	public void TestGetDAO() throws Exception
+	public void TestGetDAO()
 	{
 		assertNotNull(this.getDao());
 	}
@@ -178,7 +194,7 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	// #AdjustLimit
 
 	@Test
-	public void TestAdjustLimit() throws Exception
+	public void TestAdjustLimit()
 	{
 		final AbstractObjectifyDao<T> impl = (AbstractObjectifyDao) this.getDao();
 
@@ -192,18 +208,16 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	// #MassageQuery
 
 	@Test(expected = NullPointerException.class)
-	public void TestMassageQuery_NullQuery() throws Exception
+	public void TestMassageQuery_NullQuery()
 	{
 		final Query<T> finalizedQuery = null;
 		impl.massageQuery(finalizedQuery, Cursor.fromWebSafeString(""), 10);
 	}
 
-	//	Other MassageQuery tests are in the String and Long DAO Tester
-
 	// #existsInDatastore
 
 	@Test(expected = NullPointerException.class)
-	public void TestExistsInDatastore_NullInput() throws Exception
+	public void TestExistsInDatastore_NullInput()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
@@ -211,7 +225,7 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	}
 
 	@Test
-	public void TestExistsInDatastore() throws Exception
+	public void TestExistsInDatastore()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
@@ -239,7 +253,7 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	// //////////////////////////////////////////////////////////
 
 	/**
-	 * Returns the Entity Manager for this AbstractObjectifyLongDao Testor.
+	 * Returns the {@link Dao} for this AbstractObjectifyLongDao Testor.
 	 *
 	 * @return
 	 */
@@ -250,21 +264,21 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	 *
 	 * @return
 	 */
-	protected abstract T getEmptyTestEntityWithNoKey() throws Exception;
+	protected abstract T getEmptyTestEntityWithNoKey();
 
 	/**
 	 * Get an empty Entity with a Key.
 	 *
 	 * @return
 	 */
-	protected abstract T getEmptyTestEntityWithKey() throws Exception;
+	protected abstract T getEmptyTestEntityWithKey();
 
 	/**
 	 * Returns a Test entity that has all fields populated, including its Key.
 	 *
 	 * @return
 	 */
-	protected abstract T getFullyPopulatedEntity() throws Exception;
+	protected abstract T getFullyPopulatedEntity();
 
 	/**
 	 * Makes one or more changes (typically minor) to an entity in order to support the update() test.
@@ -286,7 +300,7 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	protected abstract void assertThatLoadedEntityWasUpdatedProperly(final T entityLoadedFromDataStore);
 
 	/**
-	 * Test the fully-populated Entity returned from the ds via a find-by after creating the Full Entity.
+	 * Test the fully-populated Entity returned from the Datastore via a find-by after creating the Full Entity.
 	 *
 	 * @param entityLoadedFromDataStore The Entity loaded via findByPK after a creation.
 	 */
@@ -321,7 +335,7 @@ public abstract class AbstractDaoTesterGAE<T extends AbstractEntity & GaeTypedEn
 	 *
 	 * @param entity
 	 */
-	protected void doCommonAssertions(final T entity) throws Exception
+	protected void doCommonAssertions(final T entity)
 	{
 		assertThat(entity, is(notNullValue()));
 		assertThat(entity.getKey(), is(notNullValue()));

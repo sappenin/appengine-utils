@@ -1,16 +1,17 @@
 package com.sappenin.utils.appengine.data.dao.base;
 
-import com.googlecode.objectify.Key;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Test classes to validate abstract testers.
  */
-public class TestLongEntityTest extends AbstractObjectifyLongDaoTester<TestLongEntity>
+public class TestLongEntityTest extends AbstractObjectifyLongObjectifyDaoTester<TestLongEntity>
 {
 	private TestLongEntityDao dao;
 
@@ -30,22 +31,15 @@ public class TestLongEntityTest extends AbstractObjectifyLongDaoTester<TestLongE
 	}
 
 	@Override
-	protected TestLongEntity getEmptyTestEntityWithNoKey() throws Exception
+	protected TestLongEntity getEmptyTestEntityWithNoKey()
 	{
 		return new TestLongEntity();
 	}
 
 	@Override
-	protected TestLongEntity getEmptyTestEntityWithKey() throws Exception
+	protected TestLongEntity getFullyPopulatedEntity()
 	{
-		Key<TestLongEntity> key = Key.create(TestLongEntity.class, 123L);
-		return new TestLongEntity(key);
-	}
-
-	@Override
-	protected TestLongEntity getFullyPopulatedEntity() throws Exception
-	{
-		TestLongEntity entity = this.getEmptyTestEntityWithKey();
+		TestLongEntity entity = this.getEmptyTestEntityWithNoKey();
 
 		entity.setCreationDateTime(nowForTest);
 
@@ -81,7 +75,6 @@ public class TestLongEntityTest extends AbstractObjectifyLongDaoTester<TestLongE
 	 */
 	public static final class TestLongEntityDao extends AbstractObjectifyLongDao<TestLongEntity>
 	{
-
 	}
 
 }

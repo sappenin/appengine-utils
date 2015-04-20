@@ -1,17 +1,14 @@
 /**
  * Copyright (C) 2014 Sappenin Inc. (developers@sappenin.com)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 package com.sappenin.utils.appengine.data.dao;
 
@@ -32,6 +29,13 @@ import java.util.List;
  */
 public interface ObjectifyDao<T extends AbstractEntity> extends Dao<T>
 {
+	/**
+	 * Create an entity in the Datastore.
+	 *
+	 * @param entity
+	 */
+	void create(final T entity);
+
 	/**
 	 * Finds an entity from the database using a typed Objectify Key<T>.
 	 *
@@ -77,7 +81,7 @@ public interface ObjectifyDao<T extends AbstractEntity> extends Dao<T>
 	 *
 	 * @return
 	 */
-	public boolean existsInDatastore(final Key<T> typedKey);
+	boolean existsInDatastore(final Key<T> typedKey);
 
 	/**
 	 * Determines if the entity indicated by {@code typedKey} exists in the datastore.  Note that this operation is
@@ -87,5 +91,5 @@ public interface ObjectifyDao<T extends AbstractEntity> extends Dao<T>
 	 *
 	 * @return
 	 */
-	public boolean existsInDatastoreConsistent(final Key<T> typedKey);
+	boolean existsInDatastoreConsistent(final Key<T> typedKey);
 }

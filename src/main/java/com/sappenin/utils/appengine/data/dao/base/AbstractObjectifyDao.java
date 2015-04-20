@@ -1,17 +1,14 @@
 /**
  * Copyright (C) 2014 Sappenin Inc. (developers@sappenin.com)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 package com.sappenin.utils.appengine.data.dao.base;
 
@@ -24,11 +21,13 @@ import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.ObjectifyService;
+import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.cmd.Query;
 import com.sappenin.utils.annotations.Idempotent;
 import com.sappenin.utils.appengine.data.dao.ObjectifyDao;
 import com.sappenin.utils.appengine.data.model.ResultWithCursor;
-import com.sappenin.utils.appengine.data.model.base.AbstractEntity;
+import com.sappenin.utils.appengine.data.model.base.AbstractObjectifyEntity;
+import com.sappenin.utils.exceptions.data.DuplicateEntityException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -39,7 +38,8 @@ import java.util.List;
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends AbstractDao<T> implements ObjectifyDao<T>
+public abstract class AbstractObjectifyDao<T extends AbstractObjectifyEntity> extends AbstractDao<T>
+		implements ObjectifyDao<T>
 {
 
 	// ////////////////////////////////////////
@@ -53,25 +53,42 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	@Idempotent
 	public void save(final T entity)
 	{
-		this.save(entity, true);
+		this.save(entity, false);
 	}
 
 	/**
-	 * Doesn't allow an entity with a non-null Key<T> to be saved, and updates the updatedDateTime to be "now".
+	 * Doesn't allow an entity with a non-null Key<T> to be saved, and optinoally updates the updatedDateTime to be
+	 * "now" if {@code touchUpdateDateTime} is set to {@code true}.
 	 */
 	@Override
-	public void save(final T entity, boolean touchUpdateDateTime)
+	public void save(final T entity, final boolean touchUpdateDateTime)
 	{
 		Preconditions.checkNotNull(entity);
 		Preconditions.checkArgument(entity.getKey() != null,
 				"Cannot #save an Entity that has no Key.  Call the Dao's #createNew function instead.");
 
-		if (touchUpdateDateTime)
+		ObjectifyService.ofy().transact(new VoidWork()
 		{
-			entity.setUpdateDateTime(DateTime.now(DateTimeZone.UTC));
-		}
+			@Override
+			public void vrun()
+			{
+				final Optional<T> optExisting = findByTypedKey(entity.getTypedKey());
+				if (!optExisting.isPresent())
+				{
+					throw new DuplicateEntityException(
+							"Unable to save an existing " + entity.getClass().getSimpleName() + " with id \"" + entity
+									.getId() + "\" because it does not exist in the Datastore!");
+				}
 
-		ObjectifyService.ofy().save().entity(entity).now();
+				if (touchUpdateDateTime)
+				{
+					entity.setUpdateDateTime(DateTime.now(DateTimeZone.UTC));
+				}
+
+				ObjectifyService.ofy().save().entity(entity).now();
+			}
+		});
+
 	}
 
 	// ////////////////////////////
@@ -162,7 +179,7 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	}
 
 	/**
-	 * Helper method to massages a {@link Query} object to have the proper limit and offset values.
+	 * Helper method to massage a {@link Query} object to have the proper limit and offset values.
 	 *
 	 * @param finalizedQuery
 	 * @param offset
@@ -173,7 +190,6 @@ public abstract class AbstractObjectifyDao<T extends AbstractEntity> extends Abs
 	@VisibleForTesting
 	Query<T> massageQuery(Query<T> finalizedQuery, final Cursor offset, int limit)
 	{
-
 		Preconditions.checkNotNull(finalizedQuery);
 		// TODO Allow external callers to udpate the number of allowed items to return...
 		if ((limit <= 0) || (limit > 50))

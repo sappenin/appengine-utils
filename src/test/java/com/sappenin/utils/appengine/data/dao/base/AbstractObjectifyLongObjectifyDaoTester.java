@@ -29,8 +29,8 @@ import static org.hamcrest.core.Is.is;
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectifyLongEntity<T> & GaeTypedEntity<T>>
-		extends AbstractDaoTesterGAE<T>
+public abstract class AbstractObjectifyLongObjectifyDaoTester<T extends AbstractObjectifyLongEntity<T> & GaeTypedEntity<T>>
+		extends AbstractObjectifyDaoTester<T>
 {
 
 	@Before
@@ -54,7 +54,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	@Override
-	public void TestNonIdempotentSave() throws Exception
+	public void TestNonIdempotentSave()
 	{
 		final T entity = getEmptyTestEntityWithNoKey();
 		this.getDao().save(entity);
@@ -65,9 +65,10 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	 */
 	@Test
 	@Override
-	public void TestIdempotentSave() throws Exception
+	public void TestIdempotentSave()
 	{
 		final T entity = getEmptyTestEntityWithKey();
+		this.getDao().save(entity);
 		this.getDao().save(entity);
 	}
 
@@ -76,7 +77,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	 */
 	@Test
 	@Override
-	public void TestNonIdempotentCreate() throws Exception
+	public void TestNonIdempotentCreate()
 	{
 		final T entity = getEmptyTestEntityWithNoKey();
 		this.getDao().create(entity);
@@ -87,7 +88,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	@Override
-	public void TestIdempotentCreate() throws Exception
+	public void TestIdempotentCreate()
 	{
 		final T entity = getEmptyTestEntityWithKey();
 		this.getDao().create(entity);
@@ -98,22 +99,31 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	/////////////////////////////
 
 	/**
-	 * Tests what happens when a "dao#create"  is called on an entity with an id.
+	 * Tests what happens when a "dao#existsInDatastore"  is called with a null input.
 	 */
 	@Test(expected = NullPointerException.class)
-	public void TestExistsInDatastore_NullInput() throws Exception
+	public void TestExistsInDatastore_NullInput()
 	{
 		this.getDao().existsInDatastore(null);
 	}
 
-	/**
-	 * Tests what happens when a "dao#create"  is called on an entity with an id.
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void TestExistsInDatastore() throws Exception
+	@Test
+	public void TestExistsInDatastore_NoExists()
 	{
 		final T entity = getEmptyTestEntityWithKey();
-		this.getDao().create(entity);
+		final Key<T> key = entity.getTypedKey();
+		ObjectifyService.ofy().delete().key(key).now();
+		assertThat(this.getDao().existsInDatastore(key), is(false));
+	}
+
+	/**
+	 * Tests what happens when a "dao#existsInDatastore"  is called and the entity should exist.
+	 */
+	@Test
+	public void TestExistsInDatastore_Exists()
+	{
+		final T entity = getEmptyTestEntityWithKey();
+		this.getDao().save(entity);
 		assertThat(this.getDao().existsInDatastore(entity.getTypedKey()), is(true));
 	}
 
@@ -122,7 +132,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	/////////////////////////////
 
 	@Test
-	public void TestLoadFromDatastoreWithCursor() throws Exception
+	public void TestLoadFromDatastoreWithCursor()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
@@ -153,7 +163,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	/////////////////////////////
 
 	@Test
-	public void TestLoadKeysFromDatastoreWithCursor() throws Exception
+	public void TestLoadKeysFromDatastoreWithCursor()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
@@ -189,7 +199,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	 * asking for 9.
 	 */
 	@Test
-	public void TestMassageQuery_Long_NullCursor() throws Exception
+	public void TestMassageQuery_Long_NullCursor()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
@@ -205,7 +215,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	}
 
 	@Test
-	public void TestMassageQuery_0() throws Exception
+	public void TestMassageQuery_0()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
@@ -223,7 +233,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	 * asking for 9.
 	 */
 	@Test
-	public void TestAssembleResultWithCursor() throws Exception
+	public void TestAssembleResultWithCursor()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
@@ -257,7 +267,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	/////////////////////////////
 
 	@Test(expected = NullPointerException.class)
-	public void TestExistsInDatastoreConsistent_NullInput() throws Exception
+	public void TestExistsInDatastoreConsistent_NullInput()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
@@ -265,7 +275,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	}
 
 	@Test
-	public void TestExistsInDatastoreConsistent() throws Exception
+	public void TestExistsInDatastoreConsistent()
 	{
 		// Need to peg this to type "TestLongEntity" in to test properly.
 		final AbstractObjectifyDao<TestLongEntity> impl = new TestLongEntityDao();
@@ -288,7 +298,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	 *
 	 * @return
 	 */
-	protected T getEmptyTestEntityForValidSave() throws Exception
+	protected T getTestEntityForValidSave()
 	{
 		return this.getEmptyTestEntityWithKey();
 	}
@@ -298,7 +308,7 @@ public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectify
 	 *
 	 * @return
 	 */
-	protected T getEmptyTestEntityForValidCreate() throws Exception
+	protected T getTestEntityForValidCreate()
 	{
 		return this.getEmptyTestEntityWithNoKey();
 	}
