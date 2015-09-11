@@ -8,6 +8,7 @@ Various utilities for interacting with Google App Engine
 Change Log
 ----------
 **Version 1.2.0**
++ Add basic password encryption services using jasypt library.
 + Add support for async task scheduling and handling
 + Fix AbstractEntity test harness design
 
