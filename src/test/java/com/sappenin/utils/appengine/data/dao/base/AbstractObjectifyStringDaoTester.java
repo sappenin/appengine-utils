@@ -10,8 +10,8 @@ import com.googlecode.objectify.impl.translate.opt.joda.DateTimeZoneTranslatorFa
 import com.googlecode.objectify.impl.translate.opt.joda.ReadableInstantTranslatorFactory;
 import com.sappenin.utils.appengine.data.dao.ObjectifyLongDao;
 import com.sappenin.utils.appengine.data.dao.ObjectifyStringDao;
-import com.sappenin.utils.appengine.data.dao.base.TestLongEntityTest.TestLongEntityDao;
-import com.sappenin.utils.appengine.data.dao.base.TestStringEntityTest.TestStringEntityDao;
+import com.sappenin.utils.appengine.data.dao.base.TestLongEntityTestLong.TestLongEntityDao;
+import com.sappenin.utils.appengine.data.dao.base.TestStringEntityTestString.TestStringEntityDao;
 import com.sappenin.utils.appengine.data.model.GaeTypedEntity;
 import com.sappenin.utils.appengine.data.model.ResultWithCursor;
 import com.sappenin.utils.appengine.data.model.base.AbstractObjectifyStringEntity;
@@ -34,7 +34,7 @@ import static org.hamcrest.core.Is.is;
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyStringObjectifyDaoTester<T extends AbstractObjectifyStringEntity<T> &
+public abstract class AbstractObjectifyStringDaoTester<T extends AbstractObjectifyStringEntity<T> &
 		GaeTypedEntity<T>>
 		extends AbstractObjectifyDaoTester<T>
 {

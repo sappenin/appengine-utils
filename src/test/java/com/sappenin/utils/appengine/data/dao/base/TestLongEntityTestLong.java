@@ -2,7 +2,6 @@ package com.sappenin.utils.appengine.data.dao.base;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -11,7 +10,7 @@ import static org.junit.Assert.fail;
 /**
  * Test classes to validate abstract testers.
  */
-public class TestLongEntityTest extends AbstractObjectifyLongObjectifyDaoTester<TestLongEntity>
+public class TestLongEntityTestLong extends AbstractObjectifyLongDaoTester<TestLongEntity>
 {
 	private TestLongEntityDao dao;
 

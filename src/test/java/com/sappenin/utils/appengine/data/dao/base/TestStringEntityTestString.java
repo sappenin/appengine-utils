@@ -9,7 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * Test classes to validate abstract testers.
  */
-public class TestStringEntityTest extends AbstractObjectifyStringObjectifyDaoTester<TestStringEntity>
+public class TestStringEntityTestString extends AbstractObjectifyStringDaoTester<TestStringEntity>
 {
 	private TestStringEntityDao dao;
 

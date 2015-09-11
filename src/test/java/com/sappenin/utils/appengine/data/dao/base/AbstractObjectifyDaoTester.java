@@ -7,6 +7,7 @@ import com.googlecode.objectify.cmd.Query;
 import com.sappenin.utils.appengine.base.GaeTestHarnessInitializationAdapter;
 import com.sappenin.utils.appengine.data.dao.Dao;
 import com.sappenin.utils.appengine.data.dao.ObjectifyDao;
+import com.sappenin.utils.appengine.data.model.base.AbstractEntity;
 import com.sappenin.utils.appengine.data.model.base.AbstractObjectifyEntity;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -20,11 +21,11 @@ import static org.junit.Assert.*;
 /**
  * Provides common test functionality for DAO's, such as save and delete functions.
  *
- * @param <{@link T} extends {@link AbstractEntity}>
+ * @param <T> extends {@link AbstractEntity}>
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEntity>
+public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEntity<T>>
 		extends GaeTestHarnessInitializationAdapter
 {
 	private final AbstractObjectifyDao<T> impl = (AbstractObjectifyDao) this.getDao();
@@ -88,8 +89,6 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEnti
 
 	/**
 	 * Tests saving a fully-created entity from the Datastore.
-	 *
-	 * @return
 	 */
 	@Test
 	public void TestSaveWithNoFieldsPopulated()
@@ -100,8 +99,6 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEnti
 
 	/**
 	 * Tests saving a fully-created entity from the Datastore.
-	 *
-	 * @return
 	 */
 	@Test
 	public void TestSaveWithAllFieldsPopulated()
@@ -144,7 +141,7 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEnti
 	public abstract void TestSaveWithoutId();
 
 	/**
-	 * Tests what happens when the "dao#create"  is called on an entity with no id.
+	 * Tests what happens when the "dao#create" is called on an entity with no id.
 	 */
 	@Test
 	public abstract void TestNonIdempotentCreate();
@@ -195,14 +192,14 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEnti
 	/**
 	 * Returns the {@link Dao} for this AbstractObjectifyLongDao Testor.
 	 *
-	 * @return
+	 * @return An instance of {@link Dao} of type {@link T}.
 	 */
 	protected abstract Dao<T> getDao();
 
 	/**
 	 * Get an empty Entity with no Key.
 	 *
-	 * @return
+	 * @return An instance of type {@link T}.
 	 */
 	protected abstract T getEmptyTestEntityWithNoKey();
 
@@ -210,7 +207,7 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEnti
 	 * Returns a Test entity that has all fields populated, except for the key.  The key will be created by the
 	 * Datastore or manually via tests.
 	 *
-	 * @return
+	 * @return An instance of type {@link T}.
 	 */
 	protected abstract T getFullyPopulatedEntity();
 
@@ -218,14 +215,14 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEnti
 	 * Creates an entity in the Datastore, and returns it.  This is used by methods that require an existing entity to
 	 * already exist in the datastore.
 	 *
-	 * @return
+	 * @return An instance of type {@link T}.
 	 */
 	public abstract T getExistingEntityFromDatastore();
 
 	/**
 	 * Makes one or more changes (typically minor) to an entity in order to support the update() test.
 	 *
-	 * @param entityThatWillBeSaved
+	 * @param entityThatWillBeSaved An instance of type {@link T}.
 	 */
 	protected abstract void changeSomethingMinorOnSuppliedEntity(final T entityThatWillBeSaved);
 
@@ -259,8 +256,8 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEnti
 	 * ultimately a bug in the way the local dev server loads DateTime values from the local datastore, but something I
 	 * haven't been able to nail down.
 	 *
-	 * @param thisDate
-	 * @param thatDate
+	 * @param thisDate An instance of {@link DateTime}.
+	 * @param thatDate An instance of {@link DateTime}.
 	 */
 	protected void compareTwoDatesWithMillisecondImprecision(final DateTime thisDate, final DateTime thatDate)
 	{
@@ -275,7 +272,7 @@ public abstract class AbstractObjectifyDaoTester<T extends AbstractObjectifyEnti
 	/**
 	 * A set of common assertions that can be performed after any given datastore test.
 	 *
-	 * @param entity
+	 * @param entity An instance of type {@link T} for performing assertions upon.
 	 */
 	protected void doCommonAssertions(final T entity)
 	{

@@ -9,7 +9,7 @@ import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.impl.translate.opt.joda.DateTimeZoneTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.joda.ReadableInstantTranslatorFactory;
 import com.sappenin.utils.appengine.data.dao.ObjectifyLongDao;
-import com.sappenin.utils.appengine.data.dao.base.TestLongEntityTest.TestLongEntityDao;
+import com.sappenin.utils.appengine.data.dao.base.TestLongEntityTestLong.TestLongEntityDao;
 import com.sappenin.utils.appengine.data.model.GaeTypedEntity;
 import com.sappenin.utils.appengine.data.model.ResultWithCursor;
 import com.sappenin.utils.appengine.data.model.base.AbstractObjectifyLongEntity;
@@ -30,7 +30,7 @@ import static org.hamcrest.core.Is.is;
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyLongObjectifyDaoTester<T extends AbstractObjectifyLongEntity<T> &
+public abstract class AbstractObjectifyLongDaoTester<T extends AbstractObjectifyLongEntity<T> &
 		GaeTypedEntity<T>>
 		extends AbstractObjectifyDaoTester<T>
 {

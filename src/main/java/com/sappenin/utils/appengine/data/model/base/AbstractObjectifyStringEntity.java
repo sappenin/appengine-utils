@@ -27,9 +27,9 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author David Fuelling
  */
-@ToString
-public abstract class AbstractObjectifyStringEntity<T extends AbstractObjectifyEntity> extends AbstractObjectifyEntity<T>
-		implements GaeTypedEntity<T>
+@ToString(callSuper = true)
+public abstract class AbstractObjectifyStringEntity<T extends AbstractObjectifyEntity>
+		extends AbstractObjectifyEntity<T> implements GaeTypedEntity<T>
 {
 	private static final long serialVersionUID = -2635333245859630019L;
 

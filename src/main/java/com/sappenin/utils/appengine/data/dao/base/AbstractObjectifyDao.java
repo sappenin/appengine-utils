@@ -38,7 +38,7 @@ import java.util.List;
  *
  * @author David Fuelling
  */
-public abstract class AbstractObjectifyDao<T extends AbstractObjectifyEntity> extends AbstractDao<T>
+public abstract class AbstractObjectifyDao<T extends AbstractObjectifyEntity<T>> extends AbstractDao<T>
 		implements ObjectifyDao<T>
 {
 
@@ -161,11 +161,11 @@ public abstract class AbstractObjectifyDao<T extends AbstractObjectifyEntity> ex
 	//////////////////
 
 	/**
-	 * Adjusts a limit value to be within the parameters of this class.<br/><br/>TODO: See appengine-utils #1.
+	 * Adjusts a limit value to be within the parameters of this class.<br/> <br/>TODO: See appengine-utils #1.
 	 *
-	 * @param limit
+	 * @param limit An integer representing the number of items to return via this query.
 	 *
-	 * @return
+	 * @return the adjusted limit
 	 * @see "https://github.com/sappenin/appengine-utils/issues/1"
 	 */
 	@VisibleForTesting
@@ -181,17 +181,16 @@ public abstract class AbstractObjectifyDao<T extends AbstractObjectifyEntity> ex
 	/**
 	 * Helper method to massage a {@link Query} object to have the proper limit and offset values.
 	 *
-	 * @param finalizedQuery
-	 * @param offset
-	 * @param limit
+	 * @param finalizedQuery An instance of {@link Query} of type {@link T}.
+	 * @param offset         An instance of {@link Cursor} that represents the offset to begin this query at.
+	 * @param limit          An integer representing the number of items to return via this query.
 	 *
-	 * @return
+	 * @return A massaged query.
 	 */
 	@VisibleForTesting
 	Query<T> massageQuery(Query<T> finalizedQuery, final Cursor offset, int limit)
 	{
 		Preconditions.checkNotNull(finalizedQuery);
-		// TODO Allow external callers to udpate the number of allowed items to return...
 		if ((limit <= 0) || (limit > 50))
 		{
 			limit = 10;
@@ -215,12 +214,12 @@ public abstract class AbstractObjectifyDao<T extends AbstractObjectifyEntity> ex
 	/**
 	 * Assembles a {@link ResultWithCursor} that holds a List of objects of type <Z>.
 	 *
-	 * @param entitiesIterator
-	 * @param limit
+	 * @param entitiesIterator An instance of {@link QueryResultIterator} that has entities to operate upon.
+	 * @param limit            An integer representing the number of results to return from this method.
 	 * @param <Z>              The type of entity that should be returned in the {@link ResultWithCursor}.  This allows
 	 *                         both entities and entity keys to be returned, thus supporting keys-only queries.
 	 *
-	 * @return
+	 * @return A {@link ResultWithCursor} of type {@link List} of type {@link Z}.
 	 */
 	@VisibleForTesting
 	<Z> ResultWithCursor<List<Z>> assembleResultWithCursor(
