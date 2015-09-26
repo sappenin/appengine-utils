@@ -11,6 +11,7 @@ Change Log
 + Add basic password encryption services using jasypt library.
 + Add support for async task scheduling and handling
 + Fix AbstractEntity test harness design
++ Update dependencies
 
 **Version 1.1.0**
 + Add new methods to AbstractObjectifyDao for entity existence testing.
