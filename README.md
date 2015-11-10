@@ -7,6 +7,11 @@ Various utilities for interacting with Google App Engine
 
 Change Log
 ----------
+**Version 1.2.1**
++ Add simple ConfigurationService framework for appengine.
++ Add NameSpaceWork and VoidNameSpaceWork to help perform units of work in a specific namespace.
++ Updated Dependencies: java-utils v1.12; appengine v1.9.28.
+
 **Version 1.2.0**
 + Add basic password encryption services using jasypt library.
 + Add support for async task scheduling and handling
